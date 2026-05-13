@@ -101,6 +101,15 @@ When a Figma design is provided via MCP:
 - **Icon Fidelity**: Do not use generic icon libraries (FontAwesome, Lucide) if the Figma design uses custom icons. Request or extract the exact **SVG code**.
 - **Micro-interaction Precision**: Pay extreme attention to "active" states (e.g., selection indicators, underlines, glow effects). If there is a 2px green diamond under an icon in Figma, it must be converted to the responsive unit (e.g., `0.185vh`) and match the color exactly. **Never use `px` even for small offsets or borders.**
 
+### 📦 Asset Management & Production
+- **NO Figma Localhost URLs**: Using `http://localhost:3845/assets/...` in the code is **STRICTLY PROHIBITED**, even for prototyping.
+- **Immediate Localization**: As soon as a Figma asset (SVG, PNG, JPG) is identified and needed:
+    1. Download the asset immediately.
+    2. Save it in the project's assets directory (e.g., `src/assets/`).
+    3. Use semantic filenames (e.g., `icon-torso.svg` instead of `vector-1.svg`).
+    4. Import and use the local file in the code.
+- **Reason**: Ensures the project is always "game-ready" and prevents broken images if the Figma plugin is closed.
+
 ### 🔗 Multi-State Synchronization (Figma)
 - **Unified Feature Analysis**: When provided with multiple Figma screens for a single feature (e.g., different categories of a Garage), **DO NOT** create separate components for each.
 - **Dynamic Logic**: Identify the shared elements (layout, sidebar, header) and create a centralized state management (e.g., `useState` or Context) to handle the visual changes between categories or filters.
