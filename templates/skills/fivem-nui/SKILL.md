@@ -96,6 +96,11 @@ When a Figma design is provided via MCP:
 - **No Placeholders**: Do not use generic icons or "AI suggested" colors.
 - **Backgrounds**: If the design has a specific gradient or image, implement it exactly.
 
+### 🚫 Anti-Hallucination & Assets
+- **NO External Images**: If the Figma design has a background image, **NEVER** fetch a replacement from the internet. Use the exact asset from Figma or ask the user to provide the path/file.
+- **Icon Fidelity**: Do not use generic icon libraries (FontAwesome, Lucide) if the Figma design uses custom icons. Request or extract the exact **SVG code**.
+- **Micro-interaction Precision**: Pay extreme attention to "active" states (e.g., selection indicators, underlines, glow effects). If there is a 2px green diamond under an icon in Figma, it must be converted to the responsive unit (e.g., `0.185vh`) and match the color exactly. **Never use `px` even for small offsets or borders.**
+
 ### 🔗 Multi-State Synchronization (Figma)
 - **Unified Feature Analysis**: When provided with multiple Figma screens for a single feature (e.g., different categories of a Garage), **DO NOT** create separate components for each.
 - **Dynamic Logic**: Identify the shared elements (layout, sidebar, header) and create a centralized state management (e.g., `useState` or Context) to handle the visual changes between categories or filters.
