@@ -115,7 +115,7 @@ export const roadmapItems: RoadmapItem[] = [
     id: "7",
     title: "VS Code Extension",
     description:
-      "Native VS Code extension for managing cursor-kit templates directly from the editor.",
+      "Native VS Code extension for managing fivem-devkit templates directly from the editor.",
     status: "planned",
     priority: "high",
     category: "integration",

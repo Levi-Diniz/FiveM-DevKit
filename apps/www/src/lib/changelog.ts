@@ -85,7 +85,7 @@ function parseVersion(
   const version = headerMatch ? headerMatch[1] : simpleHeaderMatch![1];
   const url = headerMatch
     ? headerMatch[2]
-    : `https://github.com/duongductrong/cursor-kit/releases/tag/v${version}`;
+    : `https://github.com/duongductrong/fivem-devkit/releases/tag/v${version}`;
   const date = headerMatch ? headerMatch[3] : simpleHeaderMatch![2];
 
   const categories: ChangelogCategory[] = [];

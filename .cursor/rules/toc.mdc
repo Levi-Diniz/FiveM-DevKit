@@ -8,8 +8,9 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 - [Aesthetic](../skills/aesthetic/SKILL.mdc) - Visual design principles, storytelling, and micro-interactions for distinctive interfaces
 - [Backend Development](../skills/backend-development/SKILL.mdc) - API design, architecture, authentication, security, and DevOps patterns
+- [FiveM NUI](../skills/fivem-nui/SKILL.mdc) - Specialized patterns for FiveM interfaces (NUI), performance fixes, and VH/VW scaling
 - [Frontend Design](../skills/frontend-design/SKILL.mdc) - Create distinctive, production-grade interfaces with bold aesthetics (avoid generic AI slop)
-- [Frontend Development](../skills/frontend-development/SKILL.mdc) - React/TypeScript patterns: Suspense, lazy loading, TanStack Query/Router, MUI v7, file organization
+- [Frontend Development](../skills/frontend-development/SKILL.mdc) - React/TypeScript patterns for STANDARD WEB: Suspense, TanStack Query/Router, MUI v7
 - [UI Styling](../skills/ui-styling/SKILL.mdc) - shadcn/ui components, Tailwind CSS utilities, theming, accessibility, and canvas-based visual design
 - [Sequential Thinking](../skills/sequential-thinking/SKILL.mdc) - Structured problem-solving with revision, branching, and hypothesis verification
 - [Problem Solving](../skills/problem-solving/SKILL.mdc) - Techniques for complexity spirals, innovation blocks, meta-patterns, and scale testing

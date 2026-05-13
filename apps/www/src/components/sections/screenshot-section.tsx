@@ -4,7 +4,7 @@ import { motion, useInView, type Variants } from "motion/react";
 import { useRef, useState, useEffect } from "react";
 
 const TERMINAL_LINES = [
-  { type: "command", content: "npx cursor-kit-cli init" },
+  { type: "command", content: "npx fivem-devkit-cli init" },
   { type: "prompt", question: "Select target:", answer: "Cursor IDE" },
   { type: "prompt", question: "Select commands to install:", answer: "All (7 commands)" },
   { type: "prompt", question: "Select rules to install:", answer: "All (3 rules)" },

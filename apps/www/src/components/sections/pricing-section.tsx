@@ -32,7 +32,7 @@ const pricingPlans = [
       "Early access to new features",
     ],
     cta: "Join Waitlist",
-    ctaHref: "https://github.com/duongductrong/cursor-kit",
+    ctaHref: "https://github.com/duongductrong/fivem-devkit",
     highlighted: false,
   },
 ];

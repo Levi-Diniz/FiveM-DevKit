@@ -14,7 +14,7 @@ export function ChangelogHero() {
           </h1>
 
           <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Track every update, new feature, and improvement made to cursor-kit.
+            Track every update, new feature, and improvement made to fivem-devkit.
           </p>
 
           <div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-2 text-sm backdrop-blur-sm">

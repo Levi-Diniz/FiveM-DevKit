@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cursor Kit - Supercharge Your AI Coding Workflow",
+  title: "FiveM DevKit - Supercharge Your AI Coding Workflow",
   description:
     "Modern CLI toolkit for managing AI-powered IDE configurations. Streamline your development workflow with intelligent automation.",
   keywords: ["cursor", "ai", "cli", "developer tools", "productivity"],

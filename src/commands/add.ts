@@ -121,7 +121,7 @@ export const addCommand = defineCommand({
     },
   },
   async run({ args }) {
-    p.intro(pc.bgCyan(pc.black(" cursor-kit add ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit add ")));
 
     let target: InstructionTarget;
     if (isValidTarget(args.target)) {

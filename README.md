@@ -1,20 +1,20 @@
 <p align="center">
-  <img src="./thumbnail.png" alt="Cursor Kit" width="768" />
+  <img src="./thumbnail.png" alt="FiveM DevKit" width="768" />
 </p>
 
-<h1 align="center">✦ Cursor Kit ✦</h1>
+<h1 align="center">✦ FiveM DevKit ✦</h1>
 
 <p align="center">
-  <b>Supercharge your AI IDE with rules & commands</b><br/>
-  <sub>A CLI toolkit to manage, share, and sync Cursor IDE, GitHub Copilot, and Google AntiGravity configurations</sub>
+  <b>Supercharge your FiveM development with AI assistance</b><br/>
+  <sub>A CLI toolkit to manage, share, and sync AI IDE configurations for FiveM</sub>
 </p>
 
 <p align="center">
-  <a style="text-decoration: none;" href="https://www.npmjs.com/package/cursor-kit-cli" target="_blank">
-    <img src="https://img.shields.io/npm/v/cursor-kit-cli?style=flat-square&color=000000" alt="npm version" />
+  <a style="text-decoration: none;" href="https://www.npmjs.com/package/fivem-devkit-cli" target="_blank">
+    <img src="https://img.shields.io/npm/v/fivem-devkit-cli?style=flat-square&color=000000" alt="npm version" />
   </a>
-  <a style="text-decoration: none;" href="https://www.npmjs.com/package/cursor-kit-cli" target="_blank">
-    <img src="https://img.shields.io/npm/dm/cursor-kit-cli?style=flat-square&color=000000" alt="npm downloads" />
+  <a style="text-decoration: none;" href="https://www.npmjs.com/package/fivem-devkit-cli" target="_blank">
+    <img src="https://img.shields.io/npm/dm/fivem-devkit-cli?style=flat-square&color=000000" alt="npm downloads" />
   </a>
   <!-- <img src="https://img.shields.io/github/license/duongductrong/cursor-kit?style=flat-square&color=0047E1" alt="license" /> -->
 </p>
@@ -23,49 +23,40 @@
 
 ```bash
 # Install globally
-npm install -g cursor-kit-cli
+npm install -g fivem-devkit-cli
 
 # Or use directly with npx
-npx cursor-kit-cli init
+npx fivem-devkit-cli init
 ```
 
-**CLI Aliases:** `cursor-kit`, `cursorkit`, or `ck`
+**CLI Aliases:** `fivem-devkit`, `fivem-dk`, or `fdk`
 
 ```bash
 # All of these work
-cursor-kit init
-cursorkit init
-ck init
-```
-
+fivem-devkit init
+fivem-dk init
+fdk init
 ## ✨ Features
 
-- **📜 Commands** - Reusable prompt templates for common tasks
-- **📋 Rules** - Project-specific AI behavior guidelines
-- **🎓 Skills** - Comprehensive guides with references for specialized domains
-- **🔄 Sync** - Keep configurations updated from the community
-- **🎯 Multi-Target** - Support for Cursor IDE, GitHub Copilot, and Google AntiGravity
-- **🔗 Share Anywhere** - Share configs over LAN or Internet (via localtunnel/ngrok)
-- **🖥️ Multi-Instance** - Run multiple Cursor accounts simultaneously (macOS)
-- **⚡ Instance Aliases** - Create shell commands to quickly open projects in specific instances
-- **🎨 Beautiful CLI** - Delightful terminal experience
+- **🎮 FiveM Specialized** - Built-in knowledge for NUI development (React, Vue, jQuery, Vanilla).
+- **📜 Commands** - Reusable prompt templates for `/fix`, `/explain`, `/implement`, etc.
+- **📋 Rules** - Project-specific AI behavior guidelines for coding styles and Git.
+- **🎓 Skills** - Comprehensive guides for FiveM NUI, Frontend, Backend, and Design.
+- **📏 Unit Conversion** - Automatic PX to VH/VW conversion rules.
+- **🎨 Figma Fidelity** - Strict adherence to designs when using Figma MCP.
+- **🔄 Sync** - Keep configurations updated from the community.
+- **🔗 Share** - Share configs over LAN or Internet.
 
 ## 📦 Commands
 
 ### `init`
 
-Initialize commands, rules, and skills in your project with curated templates. Supports Cursor IDE, GitHub Copilot, and Google AntiGravity.
+Initialize rules, and skills in your project. This is how you "install" the DevKit guidelines into your server resources.
 
 ```bash
-cursor-kit init                       # Interactive: choose target IDE
-cursor-kit init -t cursor             # Initialize for Cursor IDE (.cursor/)
-cursor-kit init -t github-copilot     # Initialize for GitHub Copilot (.github/copilot-instructions/)
-cursor-kit init -t google-antigravity # Initialize for Google AntiGravity (.agent/)
-cursor-kit init -c                    # Only initialize commands
-cursor-kit init -r                    # Only initialize rules
-cursor-kit init -s                    # Only initialize skills
-cursor-kit init -f                    # Force overwrite existing files
-cursor-kit init -a                    # Install all templates without selection prompts
+fdk init                       # Interactive selection
+fdk init -t cursor             # Quick init for Cursor IDE (.cursor/)
+fdk init --skills              # Only install specific skills (like FiveM NUI)
 ```
 
 **Target options:**

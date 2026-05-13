@@ -1,4 +1,4 @@
-# Contributing to cursor-kit
+# Contributing to fivem-devkit
 
 Thank you for contributing! This guide will help you understand our development workflow.
 
@@ -50,9 +50,9 @@ feat(cli): add interactive mode for init command
 fix(pull): resolve file path issues on Windows
 
 # Breaking change → bumps MAJOR
-feat!: rename cursor-kit commands to ck shorthand
+feat!: rename fivem-devkit commands to ck shorthand
 
-BREAKING CHANGE: All commands now use `ck` prefix instead of `cursor-kit`
+BREAKING CHANGE: All commands now use `ck` prefix instead of `fivem-devkit`
 ```
 
 ## Release Process

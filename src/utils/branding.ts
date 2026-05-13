@@ -5,7 +5,7 @@ import pc from "picocolors";
 const cursorGradient = gradient(["#00DC82", "#36E4DA", "#0047E1"]);
 
 export function printBanner(): void {
-  const banner = figlet.textSync("Cursor Kit", {
+  const banner = figlet.textSync("FiveM DevKit", {
     font: "ANSI Shadow",
     horizontalLayout: "fitted",
   });
@@ -15,7 +15,7 @@ export function printBanner(): void {
   console.log(
     pc.dim("  ") +
       pc.bold(pc.cyan("✦")) +
-      pc.dim(" Supercharge your Cursor IDE with rules & commands")
+      pc.dim(" Supercharge your FiveM development with AI assistance")
   );
   console.log();
 }

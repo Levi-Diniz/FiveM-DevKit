@@ -17,7 +17,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2">
           <Logo size={28} />
           <span className="text-xl font-semibold tracking-tight text-foreground">
-            Cursor Kit
+            FiveM DevKit
           </span>
         </Link>
 
@@ -37,7 +37,7 @@ export function Header() {
           <ThemeToggle />
           <Button variant="ghost" size="icon" asChild>
             <Link
-              href="https://github.com/duongductrong/cursor-kit"
+              href="https://github.com/duongductrong/fivem-devkit"
               target="_blank"
               rel="noopener noreferrer"
               className=""
@@ -48,7 +48,7 @@ export function Header() {
           </Button>
           <Button size="sm" asChild>
             <Link
-              href="https://www.npmjs.com/package/cursor-kit-cli"
+              href="https://www.npmjs.com/package/fivem-devkit-cli"
               target="_blank"
             >
               Get Started

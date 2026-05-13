@@ -5,9 +5,9 @@ import { CheckCircle2, Circle, Loader2, Map } from "lucide-react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Roadmap - Cursor Kit",
+  title: "Roadmap - FiveM DevKit",
   description:
-    "Explore our vision for the future of Cursor Kit. See what we're building, what's in progress, and what's coming next.",
+    "Explore our vision for the future of FiveM DevKit. See what we're building, what's in progress, and what's coming next.",
 };
 
 function StatusIcon({ status }: { status: RoadmapItem["status"] }) {
@@ -151,7 +151,7 @@ export default function RoadmapPage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <a
-                href="https://github.com/duongductrong/cursor-kit/discussions"
+                href="https://github.com/duongductrong/fivem-devkit/discussions"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -159,7 +159,7 @@ export default function RoadmapPage() {
                 Join Discussions
               </a>
               <a
-                href="https://github.com/duongductrong/cursor-kit/issues/new"
+                href="https://github.com/duongductrong/fivem-devkit/issues/new"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"

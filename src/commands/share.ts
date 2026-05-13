@@ -19,7 +19,7 @@ import type { InstructionTarget, NetworkMode, TunnelProvider } from "../types/in
 
 const DEFAULT_PORT = 8080;
 const MAX_PORT_RETRIES = 10;
-const METADATA_FILENAME = ".cursor-kit-share.json";
+const METADATA_FILENAME = ".fivem-devkit-share.json";
 const CONFIRMATION_TIMEOUT_MS = 30000;
 
 interface ConfigOption {
@@ -167,7 +167,7 @@ function handleDownloadRequest(
 
   res.writeHead(200, {
     "Content-Type": "application/zip",
-    "Content-Disposition": 'attachment; filename="cursor-kit-configs.zip"',
+    "Content-Disposition": 'attachment; filename="fivem-devkit-configs.zip"',
     "Transfer-Encoding": "chunked",
   });
 
@@ -290,14 +290,14 @@ export const shareCommand = defineCommand({
       process.exit(1);
     }
 
-    p.intro(pc.bgCyan(pc.black(" cursor-kit share ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit share ")));
 
     const availableConfigs = detectAvailableConfigs(cwd);
 
     if (availableConfigs.length === 0) {
       console.log();
       printError("No AI IDE configs found in the current directory.");
-      printInfo("Run 'cursor-kit init' first to create configs for your AI IDE.");
+      printInfo("Run 'fivem-devkit init' first to create configs for your AI IDE.");
       console.log();
       p.cancel("Nothing to share");
       process.exit(1);
@@ -530,7 +530,7 @@ export const shareCommand = defineCommand({
       console.log(pc.bold("  Run this command on the receiving machine:"));
       console.log();
       console.log(
-        `  ${pc.cyan("$")} ${pc.bold(pc.green(`cursor-kit receive ${shareUrl}`))}`
+        `  ${pc.cyan("$")} ${pc.bold(pc.green(`fivem-devkit receive ${shareUrl}`))}`
       );
       console.log();
       printDivider();

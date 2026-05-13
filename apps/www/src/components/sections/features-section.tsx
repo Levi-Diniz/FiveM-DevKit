@@ -31,7 +31,7 @@ const features = [
     icon: RefreshCw,
     title: "Sync",
     description:
-      "Pull the latest updates from the cursor-kit community repository anytime.",
+      "Pull the latest updates from the fivem-devkit community repository anytime.",
   },
   {
     icon: Target,

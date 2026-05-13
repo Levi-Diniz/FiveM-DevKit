@@ -4,7 +4,7 @@ import { ShowcaseGrid, ShowcaseHero } from "@/components/showcase";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Showcases | Cursor Kit",
+  title: "Showcases | FiveM DevKit",
   description:
     "See what's possible with AI-powered development. Real examples of interfaces built using one-shot prompts.",
 };

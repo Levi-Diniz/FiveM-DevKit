@@ -120,7 +120,7 @@ export const listCommand = defineCommand({
     const shouldListRules = listAll || args.rules;
     const shouldListSkills = listAll || args.skills;
 
-    p.intro(pc.bgCyan(pc.black(" cursor-kit list ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit list ")));
 
     const commandsDir = getCommandsDir();
     const rulesDir = getRulesDir();
@@ -137,7 +137,7 @@ export const listCommand = defineCommand({
       console.log(pc.yellow("  No commands, rules, or skills found."));
       console.log(
         pc.dim("  Run ") +
-          highlight("cursor-kit init") +
+          highlight("fivem-devkit init") +
           pc.dim(" to get started.")
       );
       console.log();

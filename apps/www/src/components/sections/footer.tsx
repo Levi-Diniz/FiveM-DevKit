@@ -2,12 +2,12 @@ import Link from "next/link";
 
 const footerLinks = [
   {
-    href: "https://github.com/duongductrong/cursor-kit",
+    href: "https://github.com/duongductrong/fivem-devkit",
     label: "GitHub",
     target: "_blank",
   },
   {
-    href: "https://www.npmjs.com/package/cursor-kit-cli",
+    href: "https://www.npmjs.com/package/fivem-devkit-cli",
     label: "npm",
     target: "_blank",
   },
@@ -21,7 +21,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg font-semibold text-foreground">
-              Cursor Kit
+              FiveM DevKit
             </span>
           </div>
 
@@ -40,7 +40,7 @@ export function Footer() {
           </nav>
 
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Cursor Kit. MIT License.
+            © {new Date().getFullYear()} FiveM DevKit. MIT License.
           </p>
         </div>
       </div>

@@ -608,7 +608,7 @@ export const initCommand = defineCommand({
     const shouldInitRules = initAll || args.rules;
     const shouldInitSkills = initAll || args.skills;
 
-    p.intro(pc.bgCyan(pc.black(" cursor-kit init ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit init ")));
 
     let target: InstructionTarget;
     if (args.target === "github-copilot" || args.target === "cursor" || args.target === "google-antigravity") {
@@ -852,7 +852,7 @@ export const initCommand = defineCommand({
         p.outro(pc.yellow("No new templates added (all selected files already exist)"));
       } else {
         console.log();
-        p.outro(pc.green("✨ Cursor Kit initialized successfully!"));
+        p.outro(pc.green("✨ FiveM DevKit initialized successfully!"));
       }
     } catch (error) {
       s.stop("Failed");

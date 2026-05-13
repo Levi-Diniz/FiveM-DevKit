@@ -45,7 +45,7 @@ export function ShowcaseHero() {
             className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg"
           >
             Explore real interfaces built with single prompts. Each showcase
-            demonstrates the power of AI-assisted development with Cursor Kit.
+            demonstrates the power of AI-assisted development with FiveM DevKit.
           </motion.p>
 
           {/* Stats Row */}

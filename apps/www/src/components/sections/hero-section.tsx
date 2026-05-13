@@ -33,7 +33,7 @@ export function HeroSection() {
           <div className="mt-2 flex flex-col items-center gap-4 sm:flex-row">
             <Button size="lg" className="gap-2 px-8" asChild>
               <Link
-                href="https://www.npmjs.com/package/cursor-kit-cli"
+                href="https://www.npmjs.com/package/fivem-devkit-cli"
                 target="_blank"
               >
                 Get Started
@@ -42,7 +42,7 @@ export function HeroSection() {
             </Button>
             <Button variant="outline" size="lg" className="px-8" asChild>
               <Link
-                href="https://github.com/duongductrong/cursor-kit"
+                href="https://github.com/duongductrong/fivem-devkit"
                 target="_blank"
               >
                 View on GitHub

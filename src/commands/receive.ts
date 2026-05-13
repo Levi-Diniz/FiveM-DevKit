@@ -22,7 +22,7 @@ import {
 } from "../utils/fs";
 import type { InstructionTarget } from "../types/init";
 
-const METADATA_FILENAME = ".cursor-kit-share.json";
+const METADATA_FILENAME = ".fivem-devkit-share.json";
 
 interface ShareMetadata {
   version: number;
@@ -124,7 +124,7 @@ function getConfigInfo(type: InstructionTarget, cwd: string): ConfigInfo {
 }
 
 async function downloadToTemp(url: string): Promise<{ tempPath: string; size: number }> {
-  const tempPath = join(tmpdir(), `cursor-kit-receive-${randomUUID()}.zip`);
+  const tempPath = join(tmpdir(), `fivem-devkit-receive-${randomUUID()}.zip`);
   const httpClient = isHttps(url) ? httpsGet : httpGet;
 
   const options = {
@@ -289,7 +289,7 @@ async function extractWithStrategy(
 export const receiveCommand = defineCommand({
   meta: {
     name: "receive",
-    description: "Receive and extract shared AI IDE configs from a cursor-kit share URL",
+    description: "Receive and extract shared AI IDE configs from a fivem-devkit share URL",
   },
   args: {
     url: {
@@ -313,7 +313,7 @@ export const receiveCommand = defineCommand({
       process.exit(1);
     }
 
-    p.intro(pc.bgCyan(pc.black(" cursor-kit receive ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit receive ")));
 
     console.log();
     printInfo(`Source: ${highlight(url)}`);
@@ -342,7 +342,7 @@ export const receiveCommand = defineCommand({
 
       if (!metadata || !metadata.configs || metadata.configs.length === 0) {
         s.stop("Invalid share file");
-        printError("This doesn't appear to be a valid cursor-kit share.");
+        printError("This doesn't appear to be a valid fivem-devkit share.");
         printInfo("The share file is missing required metadata.");
         p.cancel("Invalid share format");
         removeFile(tempPath);

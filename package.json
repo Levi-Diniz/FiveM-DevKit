@@ -1,7 +1,7 @@
 {
-  "name": "cursor-kit-cli",
+  "name": "fivem-devkit-cli",
   "version": "1.7.0-beta.3",
-  "description": "CLI toolkit to manage Cursor IDE rules and commands",
+  "description": "CLI toolkit for FiveM development with AI assistance",
   "type": "module",
   "exports": {
     ".": {
@@ -13,9 +13,9 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "cursor-kit": "./dist/cli.js",
-    "cursorkit": "./dist/cli.js",
-    "ck": "./dist/cli.js"
+    "fivem-devkit": "./dist/cli.js",
+    "fivem-dk": "./dist/cli.js",
+    "fdk": "./dist/cli.js"
   },
   "files": [
     "dist",

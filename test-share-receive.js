@@ -13,7 +13,7 @@ const { PassThrough } = require("node:stream");
 
 const TEST_PORT = 9876;
 const CURSOR_DIR = join(process.cwd(), ".cursor");
-const OUTPUT_FILE = join(tmpdir(), "cursor-kit-test-output.zip");
+const OUTPUT_FILE = join(tmpdir(), "fivem-devkit-test-output.zip");
 
 async function runTest() {
   console.log("🧪 Testing share/receive fix...\n");

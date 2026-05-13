@@ -6,11 +6,11 @@ const installMethods = [
     icon: Terminal,
     description: "Get started in seconds with npm or npx.",
     commands: [
-      "npm install -g cursor-kit-cli",
+      "npm install -g fivem-devkit-cli",
       "# Or use directly",
-      "npx cursor-kit-cli init",
+      "npx fivem-devkit-cli init",
     ],
-    note: "CLI aliases: cursor-kit, cursorkit, ck",
+    note: "CLI aliases: fivem-devkit, fivem-dk, ck",
   },
   {
     title: "Key Commands",

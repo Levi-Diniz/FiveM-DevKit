@@ -54,7 +54,7 @@ export const removeCommand = defineCommand({
     },
   },
   async run({ args }) {
-    p.intro(pc.bgCyan(pc.black(" cursor-kit remove ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit remove ")));
 
     let target: InstructionTarget;
     if (isValidTarget(args.target)) {

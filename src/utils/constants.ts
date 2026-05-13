@@ -1,6 +1,6 @@
-export const REPO_URL = "github:duongductrong/cursor-kit";
+export const REPO_URL = "github:Levi-Diniz/FiveM-DevKit";
 export const REPO_REF = "master";
-export const REPO_RAW_URL = "https://raw.githubusercontent.com/duongductrong/cursor-kit/master";
+export const REPO_RAW_URL = "https://raw.githubusercontent.com/Levi-Diniz/FiveM-DevKit/master";
 
 export const CURSOR_DIR = ".cursor";
 export const COMMANDS_DIR = "commands";
@@ -11,7 +11,7 @@ export const COMMAND_EXTENSION = ".md";
 export const RULE_EXTENSION = ".mdc";
 export const SKILL_EXTENSION = ".mdc";
 
-export const CONFIG_FILE = ".cursorkit";
+export const CONFIG_FILE = ".fivemdevkit";
 
 export const TEMPLATE_PATHS = {
   commands: "templates/commands",

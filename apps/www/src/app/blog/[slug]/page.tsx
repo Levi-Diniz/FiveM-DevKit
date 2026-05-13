@@ -22,12 +22,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post) {
     return {
-      title: "Post Not Found - Cursor Kit",
+      title: "Post Not Found - FiveM DevKit",
     };
   }
 
   return {
-    title: `${post.title} - Cursor Kit Blog`,
+    title: `${post.title} - FiveM DevKit Blog`,
     description: post.description,
   };
 }

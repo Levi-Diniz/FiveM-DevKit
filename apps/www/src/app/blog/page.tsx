@@ -5,7 +5,7 @@ import { getAllPosts } from "@/lib/blog";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog - Cursor Kit",
+  title: "Blog - FiveM DevKit",
   description:
     "Tips, tutorials, and insights on AI-powered development. Learn how to write better prompts and boost your coding productivity.",
 };

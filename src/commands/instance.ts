@@ -352,7 +352,7 @@ export const instanceCommand = defineCommand({
     },
   },
   async run({ args }) {
-    p.intro(pc.bgCyan(pc.black(" cursor-kit instance ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit instance ")));
 
     // OS check
     if (process.platform !== "darwin") {
@@ -372,7 +372,7 @@ export const instanceCommand = defineCommand({
 
       if (instances.length === 0) {
         printInfo("No custom Cursor instances found.");
-        console.log(pc.dim("  Run ") + highlight("cursor-kit instance") + pc.dim(" to create one."));
+        console.log(pc.dim("  Run ") + highlight("fivem-devkit instance") + pc.dim(" to create one."));
       } else {
         console.log(pc.bold(pc.cyan("  🖥  Cursor Instances")) + pc.dim(` (${instances.length})`));
         console.log();
@@ -397,7 +397,7 @@ export const instanceCommand = defineCommand({
       if (existingInstances.length === 0) {
         console.log();
         printInfo("No custom Cursor instances found.");
-        console.log(pc.dim("  Create an instance first with: ") + highlight("cursor-kit instance -a create"));
+        console.log(pc.dim("  Create an instance first with: ") + highlight("fivem-devkit instance -a create"));
         console.log();
         p.outro(pc.dim("Nothing to do"));
         return;

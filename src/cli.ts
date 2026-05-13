@@ -15,9 +15,9 @@ const pkg = require("../package.json") as { version: string };
 
 const main = defineCommand({
   meta: {
-    name: "cursor-kit",
+    name: "fivem-devkit",
     version: pkg.version,
-    description: "CLI toolkit to manage Cursor IDE rules and commands",
+    description: "CLI toolkit for FiveM development with AI assistance",
   },
   setup() {
     printBanner();

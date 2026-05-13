@@ -87,7 +87,7 @@ async function convertPulledFilesForTarget(
 export const pullCommand = defineCommand({
   meta: {
     name: "pull",
-    description: "Pull latest updates from cursor-kit repository",
+    description: "Pull latest updates from fivem-devkit repository",
   },
   args: {
     commands: {
@@ -126,7 +126,7 @@ export const pullCommand = defineCommand({
     const shouldPullRules = pullAll || args.rules;
     const shouldPullSkills = pullAll || args.skills;
 
-    p.intro(pc.bgCyan(pc.black(" cursor-kit pull ")));
+    p.intro(pc.bgCyan(pc.black(" fivem-devkit pull ")));
 
     let target: InstructionTarget;
     if (isValidTarget(args.target)) {
