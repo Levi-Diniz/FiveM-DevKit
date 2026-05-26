@@ -6,6 +6,7 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 ## Skills
 
+- [FiveM NUI](../skills/fivem-nui/SKILL.md) - FiveM NUI development: CEF performance, VH/VW responsive units, strict Figma fidelity, NUI communication patterns, and asset management
 - [Aesthetic](../skills/aesthetic/SKILL.md) - Visual design principles, storytelling, and micro-interactions for distinctive interfaces
 - [Backend Development](../skills/backend-development/SKILL.md) - API design, architecture, authentication, security, and DevOps patterns
 - [Frontend Design](../skills/frontend-design/SKILL.md) - Create distinctive, production-grade interfaces with bold aesthetics (avoid generic AI slop)
@@ -22,7 +23,11 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 ## Routing Guidelines
 
-1. For each user request, first infer which domains are relevant.
-2. Select 0–3 rules/skills that best match the request, prefer the SINGLE most specific one when possible.
-3. If both security and performance apply, prioritize `security.mdc` first, then `performance.mdc`.
-4. If no rule clearly matches, ignore all rules and answer normally.
+1. **FiveM Detection (MANDATORY FIRST STEP)**: Before selecting any skill, check if the project is a FiveM NUI project. Detection markers (any ONE is sufficient):
+   - **Resource files**: `fxmanifest.lua`, `__resource.lua`, or a `web/` directory typical of NUI resources.
+   - **Boilerplate signatures**: `hooks/observe.ts`, `hooks/post.ts`, `hooks/listen.ts`, or `providers/Visibility.tsx` in the `src/` directory.
+   - If **any** marker is found, **ALWAYS include `FiveM NUI` as the primary skill** — it takes priority over `Frontend Design`, `UI Styling`, and `Frontend Development` for any UI/frontend work.
+2. For each user request, first infer which domains are relevant.
+3. Select 0–3 rules/skills that best match the request, prefer the SINGLE most specific one when possible.
+4. If both security and performance apply, prioritize `security.mdc` first, then `performance.mdc`.
+5. If no rule clearly matches, ignore all rules and answer normally.
