@@ -110,6 +110,18 @@ When a Figma design is provided via MCP:
     4. Import and use the local file in the code.
 - **Reason**: Ensures the project is always "game-ready" and prevents broken images if the Figma plugin is closed.
 
+### 🎨 SVG & Icon Decision Matrix
+When extracting icons/vector assets from Figma, choose the correct approach:
+
+- **Inline SVG Components (`Icons.tsx` pattern)**:
+  - **Use for**: Small, interactive UI icons (arrows, close buttons, navigation links, status indicators).
+  - **Implementation**: Extract the SVG paths and build them as typed React components in a centralized file like `Icons.tsx` (e.g., `export const UserIcon = ({ className, style }: IconProps) => (...)`).
+  - **Best Practice**: Use `fill="currentColor"` or `stroke="currentColor"` so colors can be dynamically controlled via Tailwind/CSS class names (including hover states and dark mode). Make sure all SVG attributes are converted to React camelCase (e.g., `strokeWidth`, `fillRule`).
+- **Downloaded Asset Files (`/assets/` directory)**:
+  - **Use for**: Large illustrations, highly complex vectors (many paths/gradients), static brand logos, or background graphics.
+  - **Implementation**: Download the raw `.svg` or `.png` file directly from Figma, save it to the assets folder, and use it inside a standard `<img />` tag or CSS background.
+  - **Reason**: Avoids bloating the JS bundle with massive vector coordinate strings and enables efficient browser caching.
+
 ### 🔗 Multi-State Synchronization (Figma)
 - **Unified Feature Analysis**: When provided with multiple Figma screens for a single feature (e.g., different categories of a Garage), **DO NOT** create separate components for each.
 - **Dynamic Logic**: Identify the shared elements (layout, sidebar, header) and create a centralized state management (e.g., `useState` or Context) to handle the visual changes between categories or filters.
