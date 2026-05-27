@@ -7,6 +7,7 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 ## Skills
 
 - [FiveM NUI](../skills/fivem-nui/SKILL.md) - FiveM NUI development: CEF performance, VH/VW responsive units, strict Figma fidelity, NUI communication patterns, and asset management
+- [Project README](../skills/project-readme/SKILL.md) - Generate a comprehensive, senior-level README.md by deeply analyzing the real codebase — stack, features, design tokens, communication patterns, and author info
 - [Aesthetic](../skills/aesthetic/SKILL.md) - Visual design principles, storytelling, and micro-interactions for distinctive interfaces
 - [Backend Development](../skills/backend-development/SKILL.md) - API design, architecture, authentication, security, and DevOps patterns
 - [Frontend Design](../skills/frontend-design/SKILL.md) - Create distinctive, production-grade interfaces with bold aesthetics (avoid generic AI slop)

@@ -4,6 +4,7 @@
     "explain.md",
     "fix.md",
     "implement.md",
+    "readme.md",
     "refactor.md",
     "review.md",
     "test.md"
@@ -19,6 +20,7 @@
     "frontend-design",
     "frontend-development",
     "problem-solving",
+    "project-readme",
     "research",
     "sequential-thinking",
     "ui-styling",
