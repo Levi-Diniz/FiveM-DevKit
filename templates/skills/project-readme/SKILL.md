@@ -40,14 +40,14 @@ Before writing any documentation, perform a full codebase scan:
 
 ---
 
-## 📊 Padrão de Dados (Payloads)
-Esta seção é crucial. Sempre instrua o agente a extrair e documentar a estrutura exata de dados que trafegam pelo sistema.
+## 📊 Data Payload Standards (Mandatory)
+This section is crucial. You must extract and document the exact structures of the data payloads passing through the system.
 
-### 📥 Entrada (Entrada de Dados/Eventos)
-Documentar o payload de eventos recebidos (ex: eventos Lua -> NUI, ou payloads de requests HTTP GET/POST de entrada) com exemplos de JSON reais e válidos.
+### 📥 Incoming (Events/Requests)
+Document the raw payload of incoming events or requests (e.g., Lua -> NUI messages, or API requests) using valid, copy-pasteable JSON examples with correct property names.
 
-### 📤 Saída (Saída de Dados/Callbacks)
-Documentar o payload de eventos enviados (ex: NUI Callbacks -> Lua, ou payloads de requests HTTP enviados para outras APIs) com exemplos claros de JSON.
+### 📤 Outgoing (Callbacks/Responses)
+Document the raw payload of outgoing events or responses (e.g., NUI Callbacks -> Lua, or API responses) using real, descriptive JSON examples.
 
 ---
 
@@ -70,9 +70,9 @@ Documentar o payload de eventos enviados (ex: NUI Callbacks -> Lua, ou payloads 
 List only the technologies actually used. Extract them from `package.json` or equivalents.
 
 ```markdown
-## 🚀 Tecnologias
+## 🚀 Technologies
 
-- **[Tech Name]**: [What role it plays in this specific project — not just "UI library" but "base do projeto para tipagem forte e componentes reativos."]
+- **[Tech Name]**: [What role it plays in this specific project — not just general definitions, but its concrete role, e.g., "React + TypeScript: Project baseline for strong typing and reactive rendering."]
 - **[Tech Name]**: [...]
 ```
 
@@ -82,11 +82,11 @@ List only the technologies actually used. Extract them from `package.json` or eq
 
 ---
 
-### 3. ✨ Funcionalidades (Features)
+### 3. ✨ Features
 List concrete user-facing or developer-facing features extracted from the code.
 
 ```markdown
-## ✨ Funcionalidades
+## ✨ Features
 
 - **[Feature Name]**: [What it does, including any notable technical details like UI patterns, data handled, or interaction model.]
 ```
@@ -102,9 +102,9 @@ List concrete user-facing or developer-facing features extracted from the code.
 **For FiveM NUI projects:** Document the bidirectional communication layer.
 
 ```markdown
-## 📡 Sistema de Comunicação (NUI)
+## 📡 Communication System (NUI)
 
-O projeto utiliza um padrão de comunicação bidirecional robusto entre o **React (Frontend)** e o **FiveM (Client-side)**.
+The project utilizes a robust bidirectional communication standard between **React (Frontend)** and **FiveM (Client-side)**.
 
 ### [Hook/Module Name] (`src/path/to/file.ts`)
 [What it does — is it a listener, sender, or debugger?]
@@ -118,13 +118,13 @@ O projeto utiliza um padrão de comunicação bidirecional robusto entre o **Rea
 
 ---
 
-### 5. 📊 Padrão de Dados (Payloads) (if applicable)
+### 5. 📊 Data Payloads (if applicable)
 Document the raw payload structures of the communication layers.
 
 ```markdown
-## 📊 Padrão de Dados (Payloads)
+## 📊 Data Payloads
 
-### 📥 Eventos Recebidos / Entrada
+### 📥 Incoming Events (Lua -> NUI)
 [Describe where data comes from, e.g. Lua -> NUI or API Requests]
 
 #### 1. `[EventName]`
@@ -138,7 +138,7 @@ Document the raw payload structures of the communication layers.
 }
 ```
 
-### 📤 Eventos Enviados / Saída
+### 📤 Outgoing Events (NUI -> Lua)
 [Describe where data goes to, e.g. NUI Callback -> Lua or API Responses]
 
 #### 1. `[CallbackName]`
@@ -159,47 +159,47 @@ For each major screen or module, describe:
 - What it emits/calls when the user completes an action.
 
 ```markdown
-## 🧩 Visão Detalhada dos Menus
+## 🧩 Detailed View (Menus)
 
 ### 1. [Menu/Screen Name] (`ComponentName`)
-- **Como abrir via [Lua/API/route]**: [Exact trigger — payload, route, command.]
-- **Funcionamento**: [Step-by-step: what the user sees → what they do → what happens in code.]
-- **Importante**: [Any critical ordering, data pre-loading, or edge cases.]
+- **How to open via [Lua/API/route]**: [Exact trigger — payload, route, command.]
+- **Flow**: [Step-by-step: what the user sees → what they do → what happens in code.]
+- **Important**: [Any critical ordering, data pre-loading, or edge cases.]
 ```
 
 ---
 
-### 6. 🎨 Design Tokens
+### 7. 🎨 Design Tokens
 Extract real values from the codebase — never invent.
 
 ```markdown
 ## 🎨 Design Tokens
 
-- **Cores**:
-  - `Primária`: `#XXXXXX` ([Color name/description])
-  - `Fundo`: [Exact gradient or rgba value]
-  - `Bordas`: [Exact value]
-- **Tipografia**: [Font name and its visual effect/purpose]
-- **Transições e Efeitos**: [Specific animation/transition values used]
+- **Colors**:
+  - `Primary`: `#XXXXXX` ([Color name/description])
+  - `Background`: [Exact gradient or rgba value]
+  - `Borders`: [Exact value]
+- **Typography**: [Font name and its visual effect/purpose]
+- **Transitions & Effects**: [Specific animation/transition values used]
 ```
 
 **Rules:**
 - Copy exact hex values, rgba strings, and CSS class names from the code.
-- Explain the *intent* of each token (e.g., "Verde Crush — cor de marca do servidor").
+- Explain the *intent* of each token.
 
 ---
 
-### 7. 🛠️ How to Run
+### 8. 🛠️ How to Run
 Extract real commands from `package.json` scripts or equivalent.
 
 ```markdown
-## 🛠️ Como rodar
+## 🛠️ How to Run
 
-1. Instale as dependências:
+1. Install dependencies:
    ```bash
    npm install
    ```
-2. Inicie o servidor de desenvolvimento:
+2. Start development server:
    ```bash
    npm run dev
    ```
@@ -209,11 +209,11 @@ Extract real commands from `package.json` scripts or equivalent.
 
 ---
 
-### 8. Footer / Author
+### 9. Footer / Author
 ```markdown
 ---
 
-Desenvolvido por **[Author Name](link)** — *[Team/Context]*
+Developed by **[Author Name](link)** — *[Team/Context]*
 - **Discord**: `handle`
 - **GitHub**: [username](link)
 ```
@@ -249,5 +249,5 @@ Before finalizing the README, verify:
 
 ## 🌐 Language
 
-- Write the README in the **same language as the existing project documentation**, or in **Portuguese (Brazilian)** if it's a FiveM/Brazilian server project and no other language is established.
+- By default, write the README in **English** to match international developer documentation standards, unless the project has explicit requirements for another language.
 - Emoji section headers are encouraged for scannability (match the pattern from the examples above).
