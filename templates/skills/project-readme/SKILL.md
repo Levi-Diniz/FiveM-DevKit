@@ -40,6 +40,17 @@ Before writing any documentation, perform a full codebase scan:
 
 ---
 
+## 📊 Padrão de Dados (Payloads)
+Esta seção é crucial. Sempre instrua o agente a extrair e documentar a estrutura exata de dados que trafegam pelo sistema.
+
+### 📥 Entrada (Entrada de Dados/Eventos)
+Documentar o payload de eventos recebidos (ex: eventos Lua -> NUI, ou payloads de requests HTTP GET/POST de entrada) com exemplos de JSON reais e válidos.
+
+### 📤 Saída (Saída de Dados/Callbacks)
+Documentar o payload de eventos enviados (ex: NUI Callbacks -> Lua, ou payloads de requests HTTP enviados para outras APIs) com exemplos claros de JSON.
+
+---
+
 ## 📄 README Structure (Follow This Exactly)
 
 ### 1. Title & Description
@@ -107,7 +118,41 @@ O projeto utiliza um padrão de comunicação bidirecional robusto entre o **Rea
 
 ---
 
-### 5. 🧩 Detailed View (Menus / Screens / Modules)
+### 5. 📊 Padrão de Dados (Payloads) (if applicable)
+Document the raw payload structures of the communication layers.
+
+```markdown
+## 📊 Padrão de Dados (Payloads)
+
+### 📥 Eventos Recebidos / Entrada
+[Describe where data comes from, e.g. Lua -> NUI or API Requests]
+
+#### 1. `[EventName]`
+[Describe purpose]
+```json
+{
+  "action": "[eventName]",
+  "data": {
+    "field": "value"
+  }
+}
+```
+
+### 📤 Eventos Enviados / Saída
+[Describe where data goes to, e.g. NUI Callback -> Lua or API Responses]
+
+#### 1. `[CallbackName]`
+[Describe purpose]
+```json
+{
+  "field": "value"
+}
+```
+```
+
+---
+
+### 6. 🧩 Detailed View (Menus / Screens / Modules)
 For each major screen or module, describe:
 - How to trigger/open it (e.g., Lua command, route, event).
 - What it renders and what user actions are available.
