@@ -13,12 +13,52 @@ Specialized guide for creating high-performance, responsive interfaces for FiveM
 
 ## 🛠️ Communication Patterns
 
-### 1. React (Levi-Diniz Boilerplate)
-If the project structure includes `hooks/observe.ts` or `hooks/post.ts`, use these patterns:
+### 1. React (Levi-Diniz Boilerplate) - Structure and Usage
+When requested to create a FiveM front-end from scratch or when working with the React boilerplate, you **MUST** ensure the following structure and exact patterns are implemented. If the boilerplate files are missing, create them using these patterns:
 
+#### 📂 Directory Structure
+```text
+src/
+├── context/
+│   └── VisibilityContext.ts
+├── hooks/
+│   ├── listen.ts
+│   ├── observe.ts
+│   └── post.ts
+├── providers/
+│   └── Visibility.tsx
+├── utils/
+│   ├── debugger.ts
+│   └── misc.ts
+├── types.ts
+├── App.tsx
+└── main.tsx
+```
+
+#### 🧩 Core Boilerplate Implementation
+
+1. **`src/utils/misc.ts`**: Must export `isEnvBrowser = (): boolean => !window.invokeNative` and `noop = () => {}`.
+2. **`src/types.ts`**: Must define at least:
+   - `NuiMessageDataFrame<T = unknown> { action: string; data: T; }`
+   - `NuiDebugEventFrame { action: string; data: unknown; }`
+   - `NuiVisibilityFrame { setVisible: (visible: boolean) => void; visible: boolean; }`
+3. **`src/hooks/observe.ts`**: Exports `Observe<T>(action, handler)`. Registers `window.addEventListener("message")`, checks if `event.data.action === action`, and calls the saved handler (using `useRef`). Uses `isEnvBrowser` to log events in the browser.
+4. **`src/hooks/post.ts`**: Exports `class Post<T = unknown>`. Contains a `static async create(eventName, data, mockData)` method that uses `fetch` to `https://${GetParentResourceName()}/${eventName}`. Returns `mockData` immediately if `isEnvBrowser()` is true.
+5. **`src/hooks/listen.ts`**: Exports `useListen(event, handler, target = window)`. Registers an event listener on the target using `useEffect` and `useRef`.
+6. **`src/context/VisibilityContext.ts`**: Exports `VisibilityProviderValue` interface, `VisibilityCtx = createContext`, and a `useVisibility` hook that uses `useContext(VisibilityCtx)`.
+7. **`src/providers/Visibility.tsx`**: 
+   - A React component `VisibilityProvider` wrapping `{children}`.
+   - Uses local `useState` for `visible`.
+   - Uses `Observe("setVisibility")` (and action-specific setups like `"setupUI"`) to set visibility to true/false.
+   - Uses `useEffect` with a `keydown` listener to handle `Escape` (or `Backspace`), triggering `Post.create("closeUI")` and setting `visible(false)` (only when visible).
+   - Wraps children in `<VisibilityCtx.Provider>` and an encapsulating `<div style={{ display: visible ? "block" : "none", height: "100%" }}>`.
+8. **`src/utils/debugger.ts`**: Exports a `Debugger` class that accepts `NuiDebugEventFrame[]` and a timer. Dispatches mock `MessageEvent` loops if `isEnvBrowser()` is true to test the UI in a normal browser.
+9. **App Initialization (`App.tsx` / `main.tsx`)**: The top-level component in `App.tsx` must be wrapped inside `<VisibilityProvider>`.
+
+#### 📡 Usage Patterns
 - **Receiving**: `Observe("actionName", (data) => { ... })`
 - **Sending**: `Post.create("actionName", { data }, { mockResponse })`
-- **Visibility**: Use `useVisibility()` hook.
+- **Visibility**: Use `const { visible, setVisible } = useVisibility()` hook.
 
 ### 2. Vanilla / Vue / Modern JS
 - **Receiving**:

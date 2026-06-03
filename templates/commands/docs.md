@@ -1,5 +1,5 @@
 Before answering:
-- Use `toc.mdc` to identify the most relevant **Skills** and **Rules** for this task.
+- Use `toc.md` to identify the most relevant **Skills** and **Rules** for this task. You MUST actually read the content of the matched skill file (e.g., `skills/fivem-nui/SKILL.md`) before proceeding.
 - Skills are comprehensive guides (e.g. `frontend-development`, `ui-styling`, `backend-development`).
 - Rules are concise best practices (e.g. `git.mdc`, `coding-style.mdc`).
 - Apply ONLY the selected skills/rules that match the task context.
