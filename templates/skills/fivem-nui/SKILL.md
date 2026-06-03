@@ -173,7 +173,78 @@ export default function EventosMenu() {
 | Store received data  | `useState<T[]>([])`                 | Module-level variables  |
 | Send data to LUA     | `Post.create(action, data, mock)`   | `fetch` directly        |
 
+---
 
+## 📋 UI List Layout (MANDATORY: CSS Grid for Columnar Lists)
+
+When building a list that has a **column header row** and **item rows below it** (like a table with Nome, Status, Modo, etc.), you **MUST use CSS Grid** — NOT `position: absolute` with hardcoded `left` values.
+
+### ❌ NEVER use absolute positioning for column alignment:
+```tsx
+// ❌ WRONG — columns will desync if content changes width
+<div className="relative">
+  <span className="absolute left-[5.648vh]">{evento.nome}</span>
+  <span className="absolute left-[21.111vh]">{evento.status}</span>
+  <span className="absolute left-[36.666vh]">{evento.modo}</span>
+</div>
+```
+
+### ✅ CORRECT: Shared `grid-template-columns` on both header and rows
+Both the **header row** and every **item row** MUST share the same `gridTemplateColumns` value. This guarantees each cell aligns perfectly under its column, regardless of content.
+
+```tsx
+// 1. Define the column template ONCE — reuse it on header AND rows
+const GRID_COLS = 'grid-template-columns: 2fr 1.5fr 1fr 1fr 1.5fr 1fr auto';
+
+// 2. Header row
+<div
+  className="grid items-center font-['Agdasima'] text-[1.851vh] text-white px-[2vh]"
+  style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1.5fr 1fr auto' }}
+>
+  <span>NOME</span>
+  <span>STATUS</span>
+  <span>MODO</span>
+  <span>ARMA</span>
+  <span>CRIADOR</span>
+  <span>JOGADORES</span>
+  <span>AÇÕES</span>
+</div>
+
+// 3. Item rows — SAME gridTemplateColumns
+{items.map((item) => (
+  <div
+    key={item.id}
+    className="grid items-center font-['Agdasima'] text-[1.666vh] text-white px-[2vh] h-[3.703vh] bg-[rgba(255,255,255,0.02)] border-[0.055vh] border-[rgba(255,255,255,0.08)] rounded-[0.462vh] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+    style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1.5fr 1fr auto' }}
+  >
+    <span>{item.nome}</span>
+    <span>{item.status}</span>
+    <span>{item.modo}</span>
+    <span>{item.arma}</span>
+    <div className="flex items-center gap-[0.3vh]">
+      <span>{item.criador}</span>
+      <span className="text-[#00e27e]">{item.criadorId}</span>
+    </div>
+    <span>{item.jogadores}</span>
+    <div className="flex items-center gap-[0.740vh]">
+      {/* action buttons */}
+    </div>
+  </div>
+))}
+```
+
+### 💡 Grid Column Sizing Guide
+- `1fr` → equal share of space (good for short columns like Modo, Arma)
+- `2fr` → double share (good for longer columns like Nome)
+- `auto` → shrink to content (good for action buttons at the end)
+- Adjust `fr` values to match the Figma proportions, never use `px` widths inside the grid template
+
+### Summary
+| Scenario                            | Use                        |
+|-------------------------------------|----------------------------|
+| List with column header + rows      | `display: grid` with shared `gridTemplateColumns` |
+| Single standalone element           | `position: absolute` is OK |
+| Columnar alignment across rows      | ALWAYS CSS Grid            |
 
 ### 2. Vanilla / Vue / Modern JS
 - **Receiving**:
