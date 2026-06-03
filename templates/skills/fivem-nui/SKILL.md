@@ -60,6 +60,121 @@ src/
 - **Sending**: `Post.create("actionName", { data }, { mockResponse })`
 - **Visibility**: Use `const { visible, setVisible } = useVisibility()` hook.
 
+---
+
+## 🔄 Data Flow (MANDATORY PATTERNS)
+
+This is the MOST CRITICAL section. The following rules are NON-NEGOTIABLE when building components.
+
+### ❌ STRICTLY PROHIBITED: Hardcoded Mock Data
+**NEVER** create constant arrays or objects with hardcoded mock data inside components or outside them, like this:
+```tsx
+// ❌ NEVER DO THIS
+const MOCK_EVENTS = Array.from({ length: 9 }).map((_, i) => ({
+  id: i,
+  nome: 'CORRIDA MALUCA',
+  status: 'PENDENTE',
+  // ...
+}));
+```
+This is prototype code. It breaks the real integration and teaches the wrong pattern.
+
+### ✅ CORRECT: Observe + useState + Debugger
+
+Every component that receives dynamic data from the LUA backend MUST follow this 3-part pattern:
+
+#### Part 1: Define the TypeScript interface for the data
+```tsx
+// types.ts or at the top of the component
+interface Evento {
+  id: number;
+  nome: string;
+  status: string;
+  modo: string;
+  arma: string;
+  criador: string;
+  criadorId: string;
+  jogadores: string;
+}
+```
+
+#### Part 2: Use `useState` (empty by default) + `Observe` to populate it
+```tsx
+// Inside the component
+const [eventos, setEventos] = useState<Evento[]>([]);
+
+// Receive the list from LUA (this replaces the mock array entirely)
+Observe<Evento[]>('setEventos', (data) => {
+  setEventos(data);
+});
+
+// Receive open command + initial data in one shot (most common pattern)
+Observe<{ eventos: Evento[] }>('openEventos', (data) => {
+  setEventos(data.eventos);
+  setVisible(true);
+});
+```
+
+#### Part 3: Use `Debugger` in `main.tsx` or `App.tsx` to simulate LUA events in the browser
+```tsx
+// main.tsx or App.tsx — ONLY runs when isEnvBrowser() is true
+import { Debugger } from './utils/debugger';
+import type { NuiDebugEventFrame } from './types';
+
+const debugEvents: NuiDebugEventFrame[] = [
+  {
+    action: 'openEventos',
+    data: {
+      eventos: [
+        { id: 1, nome: 'CORRIDA MALUCA', status: 'PENDENTE', modo: 'CORRIDA', arma: 'PISTOLA', criador: 'SEIKI', criadorId: '#07', jogadores: '12/20' },
+        { id: 2, nome: 'DUELO FINAL',    status: 'ATIVO',    modo: 'DUELO',   arma: 'AK47',    criador: 'LEVI',  criadorId: '#01', jogadores: '2/2'   },
+      ],
+    },
+  },
+];
+
+new Debugger(debugEvents, 500); // fires 500ms after page loads
+```
+
+#### Complete example inside a component:
+```tsx
+export default function EventosMenu() {
+  const { visible, setVisible } = useVisibility();
+  const [eventos, setEventos] = useState<Evento[]>([]);
+
+  // ✅ Open the UI AND receive the data from LUA in a single event
+  Observe<{ eventos: Evento[] }>('openEventos', (data) => {
+    setEventos(data.eventos);
+    setVisible(true);
+  });
+
+  // ✅ Also handle data updates without re-opening
+  Observe<Evento[]>('setEventos', (data) => {
+    setEventos(data);
+  });
+
+  if (!visible) return null;
+
+  return (
+    <div>
+      {eventos.map((evento) => (
+        <div key={evento.id}>{evento.nome}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Summary Rule
+| Concern              | Correct Tool                        | NEVER use               |
+|----------------------|-------------------------------------|-------------------------|
+| Display mock data    | `Debugger` in `main.tsx`/`App.tsx`  | `const MOCK_X = [...]`  |
+| Receive live data    | `Observe<T>(action, handler)`       | Props or context hacks  |
+| Store received data  | `useState<T[]>([])`                 | Module-level variables  |
+| Send data to LUA     | `Post.create(action, data, mock)`   | `fetch` directly        |
+
+
+
 ### 2. Vanilla / Vue / Modern JS
 - **Receiving**:
   ```javascript
