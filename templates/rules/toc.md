@@ -26,7 +26,7 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 1. **FiveM Detection (MANDATORY FIRST STEP)**: Before selecting any skill, check if the project is a FiveM NUI project. Detection markers (any ONE is sufficient):
    - **Resource files**: `fxmanifest.lua`, `__resource.lua`, or a `web/` directory typical of NUI resources.
-   - **Boilerplate signatures**: `hooks/observe.ts`, `hooks/post.ts`, `hooks/listen.ts`, or `providers/Visibility.tsx` in the `src/` directory.
+   - **Boilerplate signatures**: `hooks/useObserve.ts`, `hooks/usePost.ts`, `hooks/useListen.ts`, or `providers/Visibility.tsx` in the `src/` directory.
    - If **any** marker is found, **ALWAYS include `FiveM NUI` as the primary skill** — it takes priority over `Frontend Design`, `UI Styling`, and `Frontend Development` for any UI/frontend work.
 2. For each user request, first infer which domains are relevant.
 3. Select 0–3 rules/skills that best match the request, prefer the SINGLE most specific one when possible.

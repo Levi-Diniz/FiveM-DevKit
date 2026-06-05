@@ -23,7 +23,7 @@ Before writing any documentation, perform a full codebase scan:
 2. **Architecture Scan**
    - List all directories in `src/` and their purpose.
    - Identify key modules: hooks, components, providers, utils, services, stores, types.
-   - Note filenames that reveal patterns (e.g., `observe.ts` = NUI listener, `post.ts` = NUI sender).
+   - Note filenames that reveal patterns (e.g., `useObserve.ts` = NUI listener, `usePost.ts` = NUI sender).
 
 3. **Feature Extraction**
    - Read component files to understand what each screen/menu does.
@@ -35,7 +35,7 @@ Before writing any documentation, perform a full codebase scan:
    - Note specific values (e.g., `#00E27E`, `rgba(0, 226, 126, 0.1)`, `Agdasima` font).
 
 5. **Communication Protocol**
-   - For FiveM: trace all `Observe()` calls and `Post.create()` calls with their payloads.
+   - For FiveM: trace all `useObserver()` calls and `post()` calls with their payloads.
    - For APIs: document all endpoints, methods, and request/response shapes.
 
 ---
@@ -229,7 +229,7 @@ Before finalizing the README, verify:
 - [ ] Every technology listed is actually in `package.json` (or equivalent)
 - [ ] Every feature described exists in the codebase
 - [ ] Every color/font value is copied from source files
-- [ ] Every NUI event is traced to an actual `Observe()` or `Post.create()` call
+- [ ] Every NUI event is traced to an actual `useObserver()` or `post()` call
 - [ ] No placeholder text remains (e.g., "lorem ipsum", "TODO", "[Add description]")
 - [ ] Commands in "How to Run" match actual `scripts` in `package.json`
 - [ ] Author info is real (from package.json or git log)

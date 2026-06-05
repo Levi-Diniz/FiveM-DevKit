@@ -22,9 +22,9 @@ src/
 ├── context/
 │   └── VisibilityContext.ts
 ├── hooks/
-│   ├── listen.ts
-│   ├── observe.ts
-│   └── post.ts
+│   ├── useListen.ts
+│   ├── useObserve.ts
+│   └── usePost.ts
 ├── providers/
 │   └── Visibility.tsx
 ├── utils/
@@ -42,22 +42,22 @@ src/
    - `NuiMessageDataFrame<T = unknown> { action: string; data: T; }`
    - `NuiDebugEventFrame { action: string; data: unknown; }`
    - `NuiVisibilityFrame { setVisible: (visible: boolean) => void; visible: boolean; }`
-3. **`src/hooks/observe.ts`**: Exports `Observe<T>(action, handler)`. Registers `window.addEventListener("message")`, checks if `event.data.action === action`, and calls the saved handler (using `useRef`). Uses `isEnvBrowser` to log events in the browser.
-4. **`src/hooks/post.ts`**: Exports `class Post<T = unknown>`. Contains a `static async create(eventName, data, mockData)` method that uses `fetch` to `https://${GetParentResourceName()}/${eventName}`. Returns `mockData` immediately if `isEnvBrowser()` is true.
-5. **`src/hooks/listen.ts`**: Exports `useListen(event, handler, target = window)`. Registers an event listener on the target using `useEffect` and `useRef`.
+3. **`src/hooks/useObserve.ts`**: Exports `useObserver<T>(action, handler)`. Registers `window.addEventListener("message")`, checks if `event.data.action === action`, and calls the saved handler (using `useRef`). Uses `isEnvBrowser` to log events in the browser.
+4. **`src/hooks/usePost.ts`**: Exports `usePost` hook returning `{ post }`. The `post<T>(eventName, data, mockData)` function uses `fetch` to `https://${GetParentResourceName()}/${eventName}`. Returns `mockData` immediately if `isEnvBrowser()` is true.
+5. **`src/hooks/useListen.ts`**: Exports `useListen(event, handler, target = window)`. Registers an event listener on the target using `useEffect` and `useRef`.
 6. **`src/context/VisibilityContext.ts`**: Exports `VisibilityProviderValue` interface, `VisibilityCtx = createContext`, and a `useVisibility` hook that uses `useContext(VisibilityCtx)`.
 7. **`src/providers/Visibility.tsx`**: 
    - A React component `VisibilityProvider` wrapping `{children}`.
    - Uses local `useState` for `visible`.
-   - Uses `Observe("setVisibility")` (and action-specific setups like `"setupUI"`) to set visibility to true/false.
-   - Uses `useEffect` with a `keydown` listener to handle `Escape` (or `Backspace`), triggering `Post.create("closeUI")` and setting `visible(false)` (only when visible).
+   - Uses `useObserver("setVisibility")` (and action-specific setups like `"setupUI"`) to set visibility to true/false.
+   - Uses `useEffect` with a `keydown` listener to handle `Escape` (or `Backspace`), triggering `post("closeUI")` (using `const { post } = usePost()`) and setting `visible(false)` (only when visible).
    - Wraps children in `<VisibilityCtx.Provider>` and an encapsulating `<div style={{ display: visible ? "block" : "none", height: "100%" }}>`.
 8. **`src/utils/debugger.ts`**: Exports a `Debugger` class that accepts `NuiDebugEventFrame[]` and a timer. Dispatches mock `MessageEvent` loops if `isEnvBrowser()` is true to test the UI in a normal browser.
 9. **App Initialization (`App.tsx` / `main.tsx`)**: The top-level component in `App.tsx` must be wrapped inside `<VisibilityProvider>`.
 
 #### 📡 Usage Patterns
-- **Receiving**: `Observe("actionName", (data) => { ... })`
-- **Sending**: `Post.create("actionName", { data }, { mockResponse })`
+- **Receiving**: `useObserver("actionName", (data) => { ... })`
+- **Sending**: `const { post } = usePost(); post("actionName", { data }, { mockResponse })`
 - **Visibility**: Use `const { visible, setVisible } = useVisibility()` hook.
 
 ---
@@ -79,7 +79,7 @@ const MOCK_EVENTS = Array.from({ length: 9 }).map((_, i) => ({
 ```
 This is prototype code. It breaks the real integration and teaches the wrong pattern.
 
-### ✅ CORRECT: Observe + useState + Debugger
+### ✅ CORRECT: useObserver + useState + Debugger
 
 Every component that receives dynamic data from the LUA backend MUST follow this 3-part pattern:
 
@@ -98,18 +98,18 @@ interface Evento {
 }
 ```
 
-#### Part 2: Use `useState` (empty by default) + `Observe` to populate it
+#### Part 2: Use `useState` (empty by default) + `useObserver` to populate it
 ```tsx
 // Inside the component
 const [eventos, setEventos] = useState<Evento[]>([]);
 
 // Receive the list from LUA (this replaces the mock array entirely)
-Observe<Evento[]>('setEventos', (data) => {
+useObserver<Evento[]>('setEventos', (data) => {
   setEventos(data);
 });
 
 // Receive open command + initial data in one shot (most common pattern)
-Observe<{ eventos: Evento[] }>('openEventos', (data) => {
+useObserver<{ eventos: Evento[] }>('openEventos', (data) => {
   setEventos(data.eventos);
   setVisible(true);
 });
@@ -143,13 +143,13 @@ export default function EventosMenu() {
   const [eventos, setEventos] = useState<Evento[]>([]);
 
   // ✅ Open the UI AND receive the data from LUA in a single event
-  Observe<{ eventos: Evento[] }>('openEventos', (data) => {
+  useObserver<{ eventos: Evento[] }>('openEventos', (data) => {
     setEventos(data.eventos);
     setVisible(true);
   });
 
   // ✅ Also handle data updates without re-opening
-  Observe<Evento[]>('setEventos', (data) => {
+  useObserver<Evento[]>('setEventos', (data) => {
     setEventos(data);
   });
 
@@ -169,9 +169,9 @@ export default function EventosMenu() {
 | Concern              | Correct Tool                        | NEVER use               |
 |----------------------|-------------------------------------|-------------------------|
 | Display mock data    | `Debugger` in `main.tsx`/`App.tsx`  | `const MOCK_X = [...]`  |
-| Receive live data    | `Observe<T>(action, handler)`       | Props or context hacks  |
+| Receive live data    | `useObserver<T>(action, handler)`   | Props or context hacks  |
 | Store received data  | `useState<T[]>([])`                 | Module-level variables  |
-| Send data to LUA     | `Post.create(action, data, mock)`   | `fetch` directly        |
+| Send data to LUA     | `const { post } = usePost(); post(action, data, mock)` | `fetch` directly        |
 
 ---
 
