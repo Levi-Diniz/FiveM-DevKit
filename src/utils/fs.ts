@@ -136,7 +136,7 @@ export function deleteFile(path: string): void {
 
 // Google AntiGravity directory utilities
 export function getAgentDir(cwd: string = process.cwd()): string {
-  return join(cwd, ".agent");
+  return join(cwd, ".agents");
 }
 
 export function getAgentRulesDir(cwd: string = process.cwd()): string {

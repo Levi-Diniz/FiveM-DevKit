@@ -50,7 +50,7 @@ export const TARGET_CONFIGS: Record<InstructionTarget, TargetConfig> = {
   },
   "google-antigravity": {
     label: "Google AntiGravity",
-    hint: ".agent/ directory",
+    hint: ".agents/ directory",
     commandsLabel: "workflows",
     rulesLabel: "rules",
     rulesExtension: ".md",
@@ -75,7 +75,7 @@ export async function promptTargetSelection(): Promise<InstructionTarget | symbo
       {
         value: "google-antigravity" as const,
         label: "Google AntiGravity",
-        hint: "Work with .agent/ directory",
+        hint: "Work with .agents/ directory",
       },
     ],
     initialValue: "cursor",

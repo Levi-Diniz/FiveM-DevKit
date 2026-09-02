@@ -62,7 +62,7 @@ fdk init --skills              # Only install specific skills (like FiveM NUI)
 **Target options:**
 - `cursor` (default) - Creates `.cursor/` directory structure for Cursor IDE
 - `github-copilot` - Creates `.github/copilot-instructions.md` and related structure for GitHub Copilot
-- `google-antigravity` - Creates `.agent/` directory with rules, workflows, and skills for Google AntiGravity
+- `google-antigravity` - Creates `.agents/` directory with rules, workflows, and skills for Google AntiGravity
 
 ### `add`
 
@@ -151,7 +151,7 @@ cursor-kit share -n internet -t ngrok         # Use ngrok (more reliable)
 
 **How it works:**
 
-- Detects available configs (`.cursor`, `.agent`, `.github`) in current directory
+- Detects available configs (`.cursor`, `.agents`, `.github`) in current directory
 - Starts an HTTP server (LAN) or creates a public tunnel (Internet)
 - Displays the `receive` command to run on the target machine
 - Automatically shuts down after successful transfer
@@ -405,7 +405,7 @@ your-project/
 
 ```
 your-project/
-└── .agent/
+└── .agents/
     ├── workflows/                 # Workflow templates (.md)
     │   ├── docs.md
     │   ├── explain.md

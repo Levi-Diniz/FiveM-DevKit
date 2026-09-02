@@ -61,7 +61,7 @@ async function promptTargetSelection(): Promise<InstructionTarget | symbol> {
       {
         value: "google-antigravity" as const,
         label: "Google AntiGravity",
-        hint: "Generate .agent/ directory with rules and workflows",
+        hint: "Generate .agents/ directory with rules and workflows",
       },
     ],
     initialValue: "cursor",

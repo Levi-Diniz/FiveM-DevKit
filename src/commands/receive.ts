@@ -108,7 +108,7 @@ function getConfigInfo(type: InstructionTarget, cwd: string): ConfigInfo {
       return {
         type,
         label: "Google AntiGravity",
-        directory: ".agent",
+        directory: ".agents",
         targetPath: getAgentDir(cwd),
         hasConflict: dirExists(getAgentDir(cwd)),
       };

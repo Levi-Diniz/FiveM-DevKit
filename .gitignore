@@ -40,7 +40,7 @@ yarn.lock
 .pnpm-store
 
 # Google AntiGravity
-.agent/
+.agents/
 
 # Cursor
 .cursor/

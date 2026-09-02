@@ -1,5 +1,6 @@
 ---
-alwaysApply: true
+trigger: always_on
+description: Code formatting, style guidelines, best practices, clean code
 ---
 
 - Type safety first: Prefer TypeScript with explicit types on public functions, props, and return values. Avoid any and implicit any.

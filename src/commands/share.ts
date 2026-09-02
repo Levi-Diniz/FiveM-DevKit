@@ -72,7 +72,7 @@ function detectAvailableConfigs(cwd: string): ConfigOption[] {
     configs.push({
       type: "google-antigravity",
       label: "Google AntiGravity",
-      directory: ".agent",
+      directory: ".agents",
       path: agentDir,
     });
   }
@@ -247,7 +247,7 @@ function handleRequest(
 export const shareCommand = defineCommand({
   meta: {
     name: "share",
-    description: "Share AI IDE configs (.cursor, .agent, .github) over LAN or Internet via HTTP",
+    description: "Share AI IDE configs (.cursor, .agents, .github) over LAN or Internet via HTTP",
   },
   args: {
     port: {
