@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0-beta.5](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.4...v1.7.0-beta.5) (2026-09-11)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** remove unused pnpm-workspace.yaml ([4b987e0](https://github.com/Levi-Diniz/FiveM-DevKit/commit/4b987e06e56c9d5c7648bf705489704a50999a0a))
+
 ## [1.7.0-beta.4](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.3...v1.7.0-beta.4) (2026-09-11)
 
 
