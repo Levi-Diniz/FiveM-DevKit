@@ -20,8 +20,10 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 ## Rules
 
+- [Communication](./communication.md) - Direct, objective, and non-sycophantic communication guidelines (no apologies or empty validation)
 - [Git](./git.md) - Git commit and branching conventions
 - [Coding Style](./coding-style.md) - Coding style and best practices
+- [Second Brain](./second-brain.md) - Project memory: architecture, technical decisions, bug history, and unique domain quirks
 - [Missions History](./missions-history.md) - History of monthly missions to avoid reward repetition
 
 ## Routing Guidelines

@@ -2,4 +2,4 @@
 trigger: always_on
 ---
 
-sempre fale em portugues
+Always speak in English.

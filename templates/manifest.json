@@ -1,5 +1,6 @@
 {
   "commands": [
+    "brain.md",
     "docs.md",
     "explain.md",
     "fix.md",
@@ -11,7 +12,9 @@
   ],
   "rules": [
     "coding-style.md",
+    "communication.md",
     "git.md",
+    "second-brain.md",
     "toc.md"
   ],
   "skills": [

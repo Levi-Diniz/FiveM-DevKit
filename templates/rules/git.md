@@ -38,7 +38,8 @@ Siga estritamente o formato de Conventional Commits:
 - `chore`: Tarefas de build, dependências ou ferramentas
 
 ### Regras do Assunto (`<subject>`):
-- Use o modo imperativo em inglês ou português ("add" / "adiciona", "fix" / "corrigi", "update" / "atualiza").
+- **Obrigatório:** As mensagens de commit devem ser **SEMPRE em inglês** (assunto, escopo e descrição).
+- Use o modo imperativo em inglês ("add", "fix", "update", "refactor", "remove").
 - Primeira letra minúscula.
 - Sem ponto final no término.
 - Máximo de 50 caracteres.
@@ -46,7 +47,7 @@ Siga estritamente o formato de Conventional Commits:
 
 ### Exemplo de Commit:
 ```
-fix(nui): corrige transparencia e posicao do botao de chamada
+fix(nui): fix transparency and call button position
 
-Analisa os arquivos alterados e atualiza as cores para hex de 8 digitos (#121c17) e eleva a margem inferior do card.
+Analyze changed files, update colors to 8-digit hex (#121c17), and increase bottom margin of the card.
 ```
