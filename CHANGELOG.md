@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.0-beta.6](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.5...v1.7.0-beta.6) (2026-09-14)
+
+
+### 🚀 Features
+
+* **nui:** add cef styling rules and semantic mappings ([78aa648](https://github.com/Levi-Diniz/FiveM-DevKit/commit/78aa6482aa3bf26f2188ebd6f43067796ffc052e))
+* **skills:** add anti-ai-slop rules to frontend skills ([ff2d2ce](https://github.com/Levi-Diniz/FiveM-DevKit/commit/ff2d2ce52ea8d79d0f00c60fd67ca0e62bf96e82))
+* **templates:** add ai engineering rules and enhance second brain ([f4da9d0](https://github.com/Levi-Diniz/FiveM-DevKit/commit/f4da9d07b3486c5c508c5b6b32ec583cbf393d7f))
+
 ## [1.7.0-beta.5](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.4...v1.7.0-beta.5) (2026-09-11)
 
 
