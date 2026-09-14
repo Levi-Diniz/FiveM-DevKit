@@ -232,6 +232,13 @@ function getSemanticDescriptionForRule(filename: string): string {
     "toc": "Table of contents, skill routing, rule selection guide, when to apply rules",
     "git": "Git commit conventions, branching strategy, version control, commit messages",
     "coding-style": "Code formatting, style guidelines, best practices, clean code",
+    "fivem-nui-styling": "FiveM NUI CSS and Tailwind styling rules, CEF limitations, no backdrop-filter, no slash opacity, shadows in style attribute",
+    "security-fivem": "FiveM security, zero-trust client, SQL injection prevention, anti-exploit guidelines",
+    "code-reuse": "Search before build protocol, code reuse, anti-duplication hierarchy, avoid reinventing the wheel",
+    "communication": "Direct and concise communication guidelines, non-sycophantic tone, objective feedback",
+    "second-brain": "Second Brain persistent knowledge base, decisions ADR, bug RCA post-mortems, runtime gotchas",
+    "verification": "Mandatory pre-completion verification, typecheck, build validation, definition of done",
+    "idioma": "Idioma e diretrizes de linguagem para comunicação, respostas em português",
   };
   
   return semanticMap[baseName] || "";

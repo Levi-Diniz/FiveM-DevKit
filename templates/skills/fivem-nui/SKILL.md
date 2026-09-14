@@ -47,30 +47,43 @@ If the project structure includes `hooks/observe.ts` or `hooks/post.ts`, use the
 
 ## ⚡ Performance & Compatibility (CEF Limits)
 
-The FiveM browser (CEF) has specific limitations. Follow these strictly:
+### 🚫 Blur Optimization (PROIBIDO backdrop-filter / backdrop-blur)
+- **`backdrop-filter: blur()` e `backdrop-blur-*` NÃO FUNCIONAM no FiveM.**
+- **Motivo Técnico**: O CEF renderiza em modo Off-Screen Rendering (OSR) isolado do pipeline DirectX do GTA V. Ele não tem acesso ao buffer de renderização do jogo e portanto **não consegue** borrar o jogo atrás da NUI. Além disso, no DOM interno causa quedas brutais de FPS, artefatos gráficos e telas pretas.
+- **NUNCA use `backdrop-blur-*` ou `backdrop-filter: blur(...)` mesmo se estiver no Figma.**
+- **MANDATÓRIO**: Use fundos escuros semi-transparentes sólidos com `rgba(...)`. Se o menu exigir efeito de fundo borrado no jogo, use o nativo FiveM no script client (Lua):
+  ```lua
+  SetTimecycleModifier("hud_def_blur") -- ou "Bloom"
+  SetTimecycleModifierStrength(1.0)
+  ```
 
-### 🚫 Blur Optimization
-- **`backdrop-filter: blur()` is heavy.**
-- **Figma Exception**: If the Figma design explicitly uses blur, it **MUST** be implemented to maintain fidelity.
-- **MANDATORY**: When using blur, follow the [TailwindCSS Bug](#tailwindcss-bugs) fix below (always use inline styles).
+### 🐛 TailwindCSS Bugs & Regras de Opacidade e Cores
+- **NUNCA use notação de barra (`/alpha`) para opacidade no Tailwind (ex: `bg-black/65`, `border-white/5`, `bg-[#10b981]/10`).** O CEF do FiveM não interpreta corretamente a sintaxe de divisão de opacidade (`rgb(r g b / alpha)` ou `--tw-*-opacity`), fazendo com que o elemento fique 100% opaco/sólido ou quebre totalmente o estilo.
+- **MANDATÓRIO**: Aplique a opacidade diretamente no canal alfa da cor via `rgba(...)` preferencialmente em `style={{ }}` ou em hex de 8 dígitos sem barra:
+  - **Inline Style (Altamente Recomendado):**
+    ```tsx
+    style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
+    ```
+  - **Tailwind Arbitrary direto sem barra:** `bg-[rgba(0,0,0,0.65)]` ou `border-[rgba(255,255,255,0.05)]`
+  - **8-digit hex:** `bg-[#000000a6]` (para 65% de opacidade)
+- **Background Color Names (`bg-emerald-400`, `bg-red-600`, etc.) frequentemente falham no CEF do FiveM.** Sempre use valores hexadecimais explícitos arbitrários ou `rgba(...)` em `style={{ }}`.
 
-### 🐛 TailwindCSS Bugs & Background Color Rules
-- **Blur and Box-Shadow classes often fail in FiveM.**
-- **MANDATORY**: Apply `blur` and `box-shadow` styles via inline `style={{ }}` (React) or vanilla CSS.
-- **Background Color Names (`bg-emerald-400`, `bg-red-600`, etc.) often fail or fail to render in FiveM CEF.**
-- **MANDATORY**: Always use explicit arbitrary hex color values for background colors, e.g. `bg-[#423414]` (or inline `style={{ backgroundColor: '#423414' }}`). Avoid using named Tailwind palette classes like `bg-emerald-400`, `bg-red-600`, `bg-blue-500`, as FiveM CEF frequently fails to interpret them.
-- **NEVER use slash opacity modifiers on hex color classes (e.g. `bg-[#10b981]/10` or `border-[#10b981]/30`).** FiveM CEF fails to parse `/` opacity modifiers attached to hex values.
-- **MANDATORY**: Write transparency directly inside 8-digit hex color strings (e.g. `bg-[#10b9811a]` for 10% opacity, `bg-[#10b98126]` for 15%, `bg-[#10b9814d]` for 30%) or use inline styles e.g. `style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}`.
-- Example (React + Tailwind):
+### 📦 Sombras Customizadas (`box-shadow`)
+- **Classes arbitrárias de sombra (ex: `shadow-[0_8px_32px_rgba(0,0,0,0.6)]`) frequentemente falham na compilação ou renderização no CEF.**
+- **MANDATÓRIO**: Declare sombras customizadas diretamente dentro do atributo `style={{ boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)' }}`.
+
+- Exemplo Comparativo (React + Tailwind):
   ```tsx
-  // ❌ AVOID (FiveM CEF fails to parse slash opacity on hex or named colors)
-  <div className="bg-[#10b981]/10 border-[#10b981]/30" />
+  // ❌ RUIM (Causa quebra no FiveM CEF: tela preta, queda de FPS e cores opacas)
+  <div className="shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-md border border-white/5 bg-black/65" />
 
-  // ✅ CORRECT (8-digit hex transparency or inline rgba style)
+  // ✅ BOM (Estável, leve e perfeitamente compatível com FiveM CEF)
   <div 
-    className="bg-[#10b9811a] border-[#10b9814d]" 
+    className="border rounded-lg"
     style={{ 
-      backgroundColor: 'rgba(16, 185, 129, 0.1)'
+      backgroundColor: 'rgba(0, 0, 0, 0.65)',
+      borderColor: 'rgba(255, 255, 255, 0.05)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)'
     }} 
   />
   ```

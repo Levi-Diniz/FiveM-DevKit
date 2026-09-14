@@ -11,11 +11,16 @@
     "test.md"
   ],
   "rules": [
+    "code-reuse.md",
     "coding-style.md",
     "communication.md",
+    "fivem-nui-styling.md",
     "git.md",
+    "idioma.md",
     "second-brain.md",
-    "toc.md"
+    "security-fivem.md",
+    "toc.md",
+    "verification.md"
   ],
   "skills": [
     "aesthetic",
