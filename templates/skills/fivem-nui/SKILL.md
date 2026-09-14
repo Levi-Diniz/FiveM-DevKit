@@ -88,6 +88,14 @@ If the project structure includes `hooks/observe.ts` or `hooks/post.ts`, use the
   />
   ```
 
+### 🚫 Anti-AI-Slop em HUDs e Interfaces FiveM
+- **Evite o visual clichê de IA**:
+  - ❌ **Proibido** colocar ícones dentro de quadradinhos coloridos repetitivos em todos os itens.
+  - ❌ **Proibido** colocar bolinhas verdes pulsantes (`animate-ping`) sem necessidade real de status online/rede.
+  - ❌ **Proibido** criar cards dentro de cards com cantos ultra-arredondados (`rounded-2xl` em tudo). Use cantos discretos (`rounded-[6px]`, `rounded-sm`) ou divisores de 1px.
+  - ❌ **Proibido** paddings inflados de marketing (`p-8`, `gap-6`). UIs de FiveM devem ser **densas, compactas e legíveis em 100ms** pelo jogador.
+- Para detalhes e diretrizes aprofundadas de design humano e autêntico, consulte a skill [Frontend Design](../frontend-design/SKILL.md).
+
 ---
 
 ## 📏 Responsive Units (VH/VW)

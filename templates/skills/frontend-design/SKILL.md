@@ -1,41 +1,125 @@
 ---
 name: frontend-design
-description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.
+description: Create distinctive, human-crafted, production-grade frontend interfaces that strictly eliminate the "AI Slop" look. Use this skill whenever building or refining UI components, HUDs, pages, or full web applications in React, Vue, or Tailwind.
 ---
 
-This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+# Frontend Design: Anti-AI-Slop & Distinctive Interfaces
 
-The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
+Esta skill define as regras obrigatórias para que interfaces geradas por IA tenham **acabamento humano, autêntico e profissional**, eliminando ativamente os vícios, clichês e padrões previsíveis que entregam que um frontend foi gerado por IA ("AI Slop").
 
-## Design Thinking
+---
 
-Before coding, understand the context and commit to a BOLD aesthetic direction:
-- **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
-- **Constraints**: Technical requirements (framework, performance, accessibility).
-- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+## 🚫 Os 7 Pecados Capitais do "AI Slop" (Lista de Proibições Estritas)
 
-**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.
+Ao gerar qualquer código de interface, o agente **NUNCA DEVE** usar os seguintes padrões a menos que o usuário exija textualmente:
 
-Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
-- Production-grade and functional
-- Visually striking and memorable
-- Cohesive with a clear aesthetic point-of-view
-- Meticulously refined in every detail
+### 1. ❌ O Falso "Dark Glassmorphism" em Tudo
+- **O Vício da IA:** Colocar `bg-black/65` ou `bg-slate-900/80` com `backdrop-blur-md`, `border border-white/10` e sombras infladas `shadow-[0_8px_32px_...]` em quase todo container, HUD ou card.
+- **A Regra:** Use fundos sólidos refinados ou semi-transparências com intenção clara (`rgba(...)`), sem abusar de blur e sem tentar fazer tudo parecer vidro genérico. Em ambientes de jogo/FiveM, `backdrop-blur` é terminantemente proibido.
 
-## Frontend Aesthetics Guidelines
+### 2. ❌ Ícone Lucide dentro de Quadrinho Colorido
+- **O Vício da IA:** Colocar cegamente um ícone centralizado dentro de um quadrado `p-2 rounded-lg bg-indigo-500/10 text-indigo-400` no topo de todo card.
+- **A Regra:** Ícones devem ter propósito estrutural. Integre o ícone inline com o título, use variações de traço (`stroke-1.5`), use ícones monocromáticos discretos ou prefira tipografia e métricas fortes em vez de depender de ícones decorativos repetitivos.
 
-Focus on:
-- **Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend's aesthetics; unexpected, characterful font choices. Pair a distinctive display font with a refined body font.
-- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
-- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available (Use `anime.js` for animations: `./references/animejs.md`). Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
-- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
-- **Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.
+### 3. ❌ Badges em Pílula com Bolinha Verde Pulsante
+- **O Vício da IA:** Adicionar uma cápsula `rounded-full border px-2 py-0.5` com um `span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"` no topo de seções ou títulos onde não há conexão de rede em tempo real.
+- **A Regra:** Só use indicadores de status se houver um estado real de conexão/servidor. Para tags e metadados, use tipografia monoespaçada discreta ou divisores limpos.
 
-NEVER use generic AI-generated aesthetics like overused font families (Inter, Roboto, Arial, system fonts), cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.
+### 4. ❌ Gradientes Roxo-para-Azul e Glows Aleatórios
+- **O Vício da IA:** `bg-gradient-to-r from-blue-500 to-purple-600` ou halos luminosos roxos/violetas desfocados no fundo.
+- **A Regra:** Escolha paletas com personalidade autêntica: monocromático quente (zinc/stone com acento âmbar), estética tática militar (oliva/verde fósforo), high-contrast suíço (preto profundo, branco puro, acento vermelho técnico) ou neon industrial (grafite escuro com ciano afiado).
 
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.
+### 5. ❌ A Tríade Mecânica de 3 Cards Perfeitamente Simétricos
+- **O Vício da IA:** Criar 3 colunas rigorosamente idênticas (Feature 1, Feature 2, Feature 3) com mesmo padding, mesmo tamanho de texto e mesmo peso visual.
+- **A Regra:** Quebre a simetria com **hierarquia real**. Um elemento principal deve ter destaque (ex: 2/3 da largura ou fundo contrastante), enquanto itens secundários são mais compactos ou exibidos em lista/tabela densa.
 
-**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
+### 6. ❌ "Cardception" (Cards Aninhados Sem Fim com `rounded-2xl`)
+- **O Vício da IA:** Um container com cantos redondos gigantes que contém cards arredondados que contêm outros botões ultra-arredondados.
+- **A Regra:** Evite caixas dentro de caixas. Separe conteúdos utilizando **linhas divisórias sutis de 1px**, alternância de tonalidade de fundo ou simplesmente **espaçamento tipográfico limpo**. Reduza o raio dos cantos (`rounded-[4px]`, `rounded-sm` ou `rounded-md`) em interfaces funcionais e técnicas.
 
-Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+### 7. ❌ Espaçamento Inflado de Landing Page em UIs Funcionais
+- **O Vício da IA:** Aplicar `p-8`, `gap-6` e alturas gigantescas em ferramentas, HUDs, painéis e inventários.
+- **A Regra:** Interfaces profissionais e de jogos priorizam **alta densidade de informação**: métricas compactas, fontes monoespaçadas para números, alinhamentos tabulares e aproveitamento inteligente de espaço.
+
+---
+
+## 🎨 Protocolo Anti-Slop em 3 Fases (Obrigatório Antes de Codar)
+
+### Fase 1: Comprometer-se com um Arquétipo Estético Específico
+Antes de escrever código, o agente deve internalizar um arquétipo visual coerente:
+- **Brutalist / Utilitarian:** Cantos retos (`rounded-none`), bordas contrastantes, tipografia técnica monoespaçada, foco absoluto em dados e funcionalidade.
+- **Tactical HUD / Sci-Fi Game:** Linhas técnicas de 1px, acentos de alta voltagem (verde fósforo, ciano ou âmbar), badges compactas, zero blur, alta legibilidade rápida.
+- **Swiss / Minimalist Grid:** Tipografia forte com pesos contrastantes (título bold pesado vs legenda leve), grid assimétrico rigoroso, paleta monocromática elegante.
+- **Editorial / Refined:** Tipografia display expressiva, respiro intencional, elegância sóbria sem artifícios de neon baratos.
+
+### Fase 2: Definir Paleta de Tokens Fechada
+- **Regra de 3 Cores:**
+  1. **Base:** 1 tom neutro sólido dominante (ex: `#09090b` ou `#121214`).
+  2. **Superfície:** 1 tom de contraste suave para painéis e divisores (ex: `#18181b` ou bordas com `rgba(255,255,255,0.08)`).
+  3. **Acento:** 1 única cor de destaque usada com precisão cirúrgica (ex: `#fbbf24` para avisos, `#22c55e` para vida, `#38bdf8` para energia).
+- **Proibido:** Espalhar utilitários de cores sortidas do Tailwind (`text-purple-400`, `bg-blue-500`, `border-pink-500`) na mesma tela sem sistema.
+
+### Fase 3: Auto-Auditoria Anti-IA (Antes da Entrega)
+Antes de finalizar qualquer arquivo de componente:
+1. [ ] Removi qualquer `backdrop-blur` ou falso glassmorphism?
+2. [ ] Removi quadradinhos coloridos genéricos em volta de ícones?
+3. [ ] Removi badges com ponto verde pulsante sem função?
+4. [ ] A densidade de informação está adequada (sem paddings inflados)?
+5. [ ] A tipografia possui hierarquia real entre números, labels e títulos?
+
+---
+
+## 🛠️ Exemplos Comparativos de Código
+
+### Exemplo 1: Card / Painel de Status
+
+```tsx
+// ❌ RUIM (Puro AI Slop: glassmorphism clichê, ícone na caixinha, badge pulsante inútil)
+<div className="p-6 rounded-2xl bg-black/65 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+  <div className="flex items-center justify-between">
+    <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+      <Activity className="h-5 w-5" />
+    </div>
+    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-emerald-500/20 bg-emerald-500/10">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      <span className="text-xs text-emerald-400">Ativo</span>
+    </div>
+  </div>
+  <h3 className="text-lg font-semibold text-white mt-4">Velocidade Atual</h3>
+  <p className="text-3xl font-bold text-white mt-1">120 KM/H</p>
+</div>
+
+// ✅ BOM (Design Humano, Tático & Funcional: limpo, denso, tipografia forte)
+<div 
+  className="rounded-[6px] border px-4 py-3"
+  style={{ 
+    backgroundColor: 'rgba(18, 18, 20, 0.95)', 
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
+  }}
+>
+  <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
+    <span className="text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+      Velocímetro
+    </span>
+    <span className="font-mono text-[10px] text-zinc-500">
+      CAN-BUS
+    </span>
+  </div>
+  <div className="mt-2.5 flex items-baseline gap-1.5">
+    <span className="font-mono text-3xl font-extrabold tracking-tight text-zinc-100">
+      120
+    </span>
+    <span className="text-xs font-bold text-amber-400">
+      KM/H
+    </span>
+  </div>
+</div>
+```
+
+---
+
+## 💡 Diretrizes para Interfaces de Jogos & HUDs (FiveM)
+- **Foco em Percepção Rápida:** O jogador está em movimento. A UI deve ser lida em 100ms. Elimine decorações que disputam atenção com a gameplay.
+- **Escala Responsiva com VH/VW:** Nunca use valores estáticos em `px` para layouts de FiveM.
+- **Contraste de Fundo:** O fundo do jogo varia o tempo todo (céu brilhante, asfalto escuro, túneis). Garanta legibilidade usando fundos sólidos escuros com `rgba(10, 10, 12, 0.85)` e sombras de texto (`drop-shadow` ou `textShadow`) nas métricas principais.
