@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0-beta.8](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.7...v1.7.0-beta.8) (2026-10-15)
+
+
+### 🐛 Bug Fixes
+
+* **package:** point repository url to FiveM-DevKit ([6f33850](https://github.com/Levi-Diniz/FiveM-DevKit/commit/6f338501abf815f90d42ce86890076c777591a21))
+
 ## [1.7.0-beta.7](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.6...v1.7.0-beta.7) (2026-10-15)
 
 
