@@ -1,93 +1,36 @@
-import { defineCommand } from "citty";
-import * as p from "@clack/prompts";
-import pc from "picocolors";
-import { downloadTemplate } from "giget";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
+import { downloadTemplate } from "giget";
+import pc from "picocolors";
 import type { InstructionTarget } from "../types/init";
+import { copyBrainTemplates, getBrainDir } from "../utils/brain";
+import { highlight, printDivider, printSuccess } from "../utils/branding";
+import { REPO_REF, REPO_URL } from "../utils/constants";
+import { dirExists, removeFile } from "../utils/fs";
 import {
-  ensureDir,
-  listFiles,
-  listDirs,
-  writeFile,
-  readFile,
-} from "../utils/fs";
-import { REPO_URL, REPO_REF } from "../utils/constants";
-import { highlight, printDivider, printSuccess, printInfo } from "../utils/branding";
+  type TargetInstallResult,
+  type TemplateSelection,
+  applyTargetProfile,
+  ensureAgentBoard,
+  installForTarget,
+  needsAgentBoard,
+} from "../utils/install";
 import {
-  promptTargetSelection,
-  isValidTarget,
-  getTargetDirectories,
+  ALL_TARGETS,
+  formatTargets,
   getTargetConfig,
+  resolveTargets,
+  saveTargets,
 } from "../utils/target";
-import {
-  convertMdToMdc,
-  transformTocContentForCursor,
-  transformRuleForAntiGravity,
-  transformCommandToWorkflow,
-} from "../utils/templates";
-
-async function convertPulledFilesForTarget(
-  target: InstructionTarget,
-  directories: ReturnType<typeof getTargetDirectories>
-): Promise<void> {
-  const { commandsDir, rulesDir, skillsDir } = directories;
-
-  if (target === "cursor") {
-    const ruleFiles = listFiles(rulesDir, ".md");
-    for (const file of ruleFiles) {
-      const sourcePath = join(rulesDir, file);
-      const content = readFile(sourcePath);
-      const mdcFilename = convertMdToMdc(file);
-      const destPath = join(rulesDir, mdcFilename);
-
-      let transformedContent = content;
-      if (file === "toc.md") {
-        transformedContent = transformTocContentForCursor(content);
-      }
-
-      writeFile(destPath, transformedContent);
-
-      const { rmSync } = await import("node:fs");
-      rmSync(sourcePath);
-    }
-
-    const skillDirs = listDirs(skillsDir);
-    for (const skillDir of skillDirs) {
-      const skillPath = join(skillsDir, skillDir);
-      const skillMdPath = join(skillPath, "SKILL.md");
-      const skillMdcPath = join(skillPath, "SKILL.mdc");
-
-      const { existsSync } = await import("node:fs");
-      if (existsSync(skillMdPath)) {
-        const content = readFile(skillMdPath);
-        writeFile(skillMdcPath, content);
-        const { rmSync } = await import("node:fs");
-        rmSync(skillMdPath);
-      }
-    }
-  } else if (target === "google-antigravity") {
-    const ruleFiles = listFiles(rulesDir, ".md");
-    for (const file of ruleFiles) {
-      const sourcePath = join(rulesDir, file);
-      const content = readFile(sourcePath);
-      const transformedContent = transformRuleForAntiGravity(content, file);
-      writeFile(sourcePath, transformedContent);
-    }
-
-    const commandFiles = listFiles(commandsDir, ".md");
-    for (const file of commandFiles) {
-      const sourcePath = join(commandsDir, file);
-      const content = readFile(sourcePath);
-      const transformedContent = transformCommandToWorkflow(content, file);
-      writeFile(sourcePath, transformedContent);
-    }
-  }
-}
+import { fetchTemplateManifest, setTemplatesSource } from "../utils/templates";
 
 export const pullCommand = defineCommand({
   meta: {
     name: "pull",
-    description: "Pull latest updates from fivem-devkit repository",
+    description: "Pull latest updates from fivem-devkit repository into every configured AI IDE",
   },
   args: {
     commands: {
@@ -114,60 +57,36 @@ export const pullCommand = defineCommand({
       description: "Force overwrite without confirmation",
       default: false,
     },
+    full: {
+      type: "boolean",
+      description: "Ignore per-target profiles and install every selected template in every IDE",
+      default: false,
+    },
     target: {
       type: "string",
       alias: "t",
-      description: "Target IDE: 'cursor', 'github-copilot', or 'google-antigravity'",
+      description: `Target IDE(s), comma-separated: ${ALL_TARGETS.join(", ")}, or 'dual'. Defaults to the targets saved by init`,
     },
   },
   async run({ args }) {
+    const cwd = process.cwd();
     const pullAll = !args.commands && !args.rules && !args.skills;
-    const shouldPullCommands = pullAll || args.commands;
-    const shouldPullRules = pullAll || args.rules;
-    const shouldPullSkills = pullAll || args.skills;
 
     p.intro(pc.bgCyan(pc.black(" fivem-devkit pull ")));
 
-    let target: InstructionTarget;
-    if (isValidTarget(args.target)) {
-      target = args.target;
-    } else {
-      const selection = await promptTargetSelection();
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      target = selection;
+    const resolved = await resolveTargets(args.target, cwd);
+    if (p.isCancel(resolved)) {
+      p.cancel("Operation cancelled");
+      process.exit(0);
     }
+    const targets = resolved as InstructionTarget[];
 
-    const targetConfig = getTargetConfig(target);
-    const directories = getTargetDirectories(target);
-    const { rootDir, commandsDir, rulesDir, skillsDir } = directories;
+    p.log.info(`Targets: ${highlight(formatTargets(targets))}`);
 
-    const rulesExtension = target === "cursor" ? ".mdc" : ".md";
-    const existingCommands = listFiles(commandsDir, ".md");
-    const existingRules = listFiles(rulesDir, rulesExtension);
-    const existingSkills = listDirs(skillsDir);
-    const hasExisting = existingCommands.length > 0 || existingRules.length > 0 || existingSkills.length > 0;
-
-    console.log(pc.dim(`  Target: ${highlight(targetConfig.label)}`));
-    console.log();
-
-    if (hasExisting && !args.force) {
-      printInfo("Current status:");
-      if (existingCommands.length > 0) {
-        console.log(pc.dim(`  ${targetConfig.commandsLabel}: ${existingCommands.length} files`));
-      }
-      if (existingRules.length > 0) {
-        console.log(pc.dim(`  ${targetConfig.rulesLabel}: ${existingRules.length} files`));
-      }
-      if (existingSkills.length > 0) {
-        console.log(pc.dim(`  Skills: ${existingSkills.length} directories`));
-      }
-      console.log();
-
+    if (!args.force) {
       const shouldContinue = await p.confirm({
-        message: "This will merge with existing files. Continue?",
+        message:
+          "This will overwrite DevKit files with the latest version (your extra files are kept). Continue?",
         initialValue: true,
       });
 
@@ -178,81 +97,66 @@ export const pullCommand = defineCommand({
     }
 
     const s = p.spinner();
+    const downloadDir = mkdtempSync(join(tmpdir(), "fivem-devkit-"));
 
     try {
-      ensureDir(rootDir);
+      s.start("Downloading latest templates...");
+      await downloadTemplate(`${REPO_URL}/templates#${REPO_REF}`, {
+        dir: downloadDir,
+        force: true,
+      });
+      setTemplatesSource(downloadDir);
+      const manifest = await fetchTemplateManifest();
+      s.stop("Templates downloaded");
 
-      if (shouldPullCommands) {
-        s.start(`Pulling ${targetConfig.commandsLabel}...`);
-        await downloadTemplate(`${REPO_URL}/templates/commands#${REPO_REF}`, {
-          dir: commandsDir,
-          force: true,
-        });
-        s.stop(`${targetConfig.commandsLabel.charAt(0).toUpperCase() + targetConfig.commandsLabel.slice(1)} updated`);
+      const selection: TemplateSelection = {
+        commands: pullAll || args.commands ? manifest.commands : [],
+        rules: pullAll || args.rules ? manifest.rules : [],
+        skills: pullAll || args.skills ? manifest.skills : [],
+      };
+
+      if (needsAgentBoard(targets, selection)) {
+        ensureAgentBoard(cwd);
       }
 
-      if (shouldPullRules) {
-        s.start(`Pulling ${targetConfig.rulesLabel}...`);
-        await downloadTemplate(`${REPO_URL}/templates/rules#${REPO_REF}`, {
-          dir: rulesDir,
-          force: true,
-        });
-        s.stop(`${targetConfig.rulesLabel.charAt(0).toUpperCase() + targetConfig.rulesLabel.slice(1)} updated`);
+      // Note templates belong to the kit; notes themselves are never touched
+      if (dirExists(getBrainDir(cwd))) {
+        copyBrainTemplates(cwd);
       }
 
-      if (shouldPullSkills) {
-        s.start("Pulling skills...");
-        await downloadTemplate(`${REPO_URL}/templates/skills#${REPO_REF}`, {
-          dir: skillsDir,
-          force: true,
-        });
-        s.stop("Skills updated");
+      const results: TargetInstallResult[] = [];
+      for (const target of targets) {
+        const label = getTargetConfig(target).label;
+        s.start(`Updating ${label}...`);
+        const targetSelection = args.full
+          ? selection
+          : applyTargetProfile(target, selection, manifest).selection;
+        results.push(await installForTarget(target, cwd, targetSelection, "overwrite"));
+        s.stop(`${label} updated`);
       }
 
-      if (target !== "github-copilot") {
-        s.start("Converting files for target...");
-        await convertPulledFilesForTarget(target, directories);
-        s.stop("Files converted");
-      }
+      saveTargets(targets, cwd);
 
       printDivider();
       console.log();
 
-      const newRulesExtension = target === "cursor" ? ".mdc" : ".md";
-      const newCommands = listFiles(commandsDir, ".md");
-      const newRules = listFiles(rulesDir, newRulesExtension);
-      const newSkills = listDirs(skillsDir);
-
-      if (shouldPullCommands) {
-        const added = newCommands.length - existingCommands.length;
+      for (const result of results) {
+        const config = getTargetConfig(result.target);
         printSuccess(
-          `${targetConfig.commandsLabel.charAt(0).toUpperCase() + targetConfig.commandsLabel.slice(1)}: ${highlight(newCommands.length.toString())} total` +
-            (added > 0 ? pc.green(` (+${added} new)`) : "")
-        );
-      }
-
-      if (shouldPullRules) {
-        const added = newRules.length - existingRules.length;
-        printSuccess(
-          `${targetConfig.rulesLabel.charAt(0).toUpperCase() + targetConfig.rulesLabel.slice(1)}: ${highlight(newRules.length.toString())} total` +
-            (added > 0 ? pc.green(` (+${added} new)`) : "")
-        );
-      }
-
-      if (shouldPullSkills) {
-        const added = newSkills.length - existingSkills.length;
-        printSuccess(
-          `Skills: ${highlight(newSkills.length.toString())} total` +
-            (added > 0 ? pc.green(` (+${added} new)`) : "")
+          `${highlight(config.label)}: ${result.commands.length} ${config.commandsLabel}, ` +
+            `${result.rules.length} ${config.rulesLabel}, ${result.skills.length} skills`,
         );
       }
 
       console.log();
-      p.outro(pc.green(`✨ Successfully pulled latest updates for ${targetConfig.label}!`));
+      p.outro(pc.green(`✨ Successfully pulled latest updates for ${formatTargets(targets)}!`));
     } catch (error) {
       s.stop("Failed");
       p.cancel(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       process.exit(1);
+    } finally {
+      setTemplatesSource(null);
+      removeFile(downloadDir);
     }
   },
 });

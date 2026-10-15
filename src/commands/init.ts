@@ -1,375 +1,49 @@
-import { defineCommand } from "citty";
 import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
 import pc from "picocolors";
-import { join } from "node:path";
-import {
-  ensureDir,
-  getCursorDir,
-  getCommandsDir,
-  getRulesDir,
-  getSkillsDir,
-  getConflictingFiles,
-  getConflictingDirs,
-  writeFile,
-  getAgentDir,
-  getAgentRulesDir,
-  getAgentWorkflowsDir,
-  getAgentSkillsDir,
-} from "../utils/fs";
+import type { InstructionTarget } from "../types/init";
 import { highlight, printDivider, printSuccess } from "../utils/branding";
+import { getBrainDir, scaffoldBrain, writeBrainIndex } from "../utils/brain";
+import { checkCopilotConflicts } from "../utils/copilot";
 import {
-  fetchTemplateManifest,
-  fetchMultipleTemplates,
-  getTemplateLabel,
-  getSkillLabel,
-  copyLocalSkill,
-  convertMdToMdc,
-  transformTocContentForCursor,
-  transformRuleForAntiGravity,
-  transformCommandToWorkflow,
-  copyLocalSkillForAntiGravity,
+  AGENT_BOARD_FILE,
+  type ConflictStrategy,
+  type TargetInstallResult,
+  type TemplateSelection,
+  applyTargetProfile,
+  ensureAgentBoard,
+  findConflicts,
+  installForTarget,
+  needsAgentBoard,
+} from "../utils/install";
+import {
+  ALL_TARGETS,
+  DUAL_TARGETS,
+  formatTargets,
+  getTargetConfig,
+  parseTargets,
+  promptTargetsSelection,
+  readSavedTargets,
+  saveTargets,
+} from "../utils/target";
+import {
   type TemplateManifest,
   type TemplateType,
+  fetchTemplateManifest,
+  getSkillLabel,
+  getTemplateLabel,
 } from "../utils/templates";
-import { type InstructionTarget } from "../types/init";
-import {
-  checkCopilotConflicts,
-  installCopilotInstructions,
-} from "../utils/copilot";
 
-type ConflictStrategy = "overwrite" | "merge" | "cancel";
+const SECOND_BRAIN_RULE = "second-brain.md";
 
-interface InitResult {
-  added: string[];
-  skipped: string[];
-}
-
-async function promptTargetSelection(): Promise<InstructionTarget | symbol> {
-  return await p.select({
-    message: "Which AI IDE are you using?",
-    options: [
-      {
-        value: "cursor" as const,
-        label: "Cursor",
-        hint: "Generate .cursor/ directory structure",
-      },
-      {
-        value: "github-copilot" as const,
-        label: "GitHub Copilot",
-        hint: "Generate .github/copilot-instructions.md",
-      },
-      {
-        value: "google-antigravity" as const,
-        label: "Google AntiGravity",
-        hint: "Generate .agents/ directory with rules and workflows",
-      },
-    ],
-    initialValue: "cursor",
-  });
-}
-
-async function handleCopilotInstallation(
-  cwd: string,
-  manifest: TemplateManifest,
-  args: {
-    all?: boolean;
-    commands?: boolean;
-    rules?: boolean;
-    skills?: boolean;
-    force?: boolean;
-  },
-  shouldInitCommands: boolean,
-  shouldInitRules: boolean,
-  shouldInitSkills: boolean
-): Promise<void> {
-  const s = p.spinner();
-
-  const canProceed = await checkCopilotConflicts(cwd, args.force ?? false);
-  if (!canProceed) {
-    p.cancel("Operation cancelled");
-    process.exit(0);
-  }
-
-  let selectedCommands: string[] = [];
-  let selectedRules: string[] = [];
-  let selectedSkills: string[] = [];
-
-  if (shouldInitCommands) {
-    if (args.all) {
-      selectedCommands = manifest.commands;
-    } else {
-      const selection = await selectTemplates("commands", manifest.commands);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedCommands = selection;
-    }
-  }
-
-  if (shouldInitRules) {
-    if (args.all) {
-      selectedRules = manifest.rules;
-    } else {
-      const selection = await selectTemplates("rules", manifest.rules);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedRules = selection;
-    }
-  }
-
-  if (shouldInitSkills) {
-    if (args.all) {
-      selectedSkills = manifest.skills;
-    } else {
-      const selection = await selectTemplates("skills", manifest.skills);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedSkills = selection;
-    }
-  }
-
-  if (
-    selectedCommands.length === 0 &&
-    selectedRules.length === 0 &&
-    selectedSkills.length === 0
-  ) {
-    p.cancel("No templates selected");
-    process.exit(0);
-  }
-
-  try {
-    s.start("Installing GitHub Copilot instructions...");
-    const result = await installCopilotInstructions(
-      cwd,
-      selectedCommands,
-      selectedRules,
-      selectedSkills
-    );
-    s.stop("GitHub Copilot instructions installed");
-
-    printDivider();
-    console.log();
-
-    if (result.commands.length > 0) {
-      printSuccess(`Commands: ${highlight(result.commands.length.toString())} added`);
-      for (const cmd of result.commands) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${cmd}`));
-      }
-    }
-
-    if (result.rules.length > 0) {
-      printSuccess(`Rules: ${highlight(result.rules.length.toString())} added`);
-      for (const rule of result.rules) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${rule}`));
-      }
-    }
-
-    if (result.skills.length > 0) {
-      printSuccess(`Skills: ${highlight(result.skills.length.toString())} added`);
-      for (const skill of result.skills) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${skill}`));
-      }
-    }
-
-    console.log();
-    p.outro(pc.green("✨ GitHub Copilot instructions created successfully!"));
-  } catch (error) {
-    s.stop("Failed");
-    p.cancel(
-      `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-    process.exit(1);
-  }
-}
-
-async function handleAntiGravityInstallation(
-  cwd: string,
-  manifest: TemplateManifest,
-  args: {
-    all?: boolean;
-    commands?: boolean;
-    rules?: boolean;
-    skills?: boolean;
-    force?: boolean;
-  },
-  shouldInitCommands: boolean,
-  shouldInitRules: boolean,
-  shouldInitSkills: boolean
-): Promise<void> {
-  const s = p.spinner();
-  const agentDir = getAgentDir(cwd);
-  const rulesDir = getAgentRulesDir(cwd);
-  const workflowsDir = getAgentWorkflowsDir(cwd);
-  const skillsDir = getAgentSkillsDir(cwd);
-
-  // Check for existing conflicts
-  const existingRules = getConflictingFiles(rulesDir, manifest.rules);
-  const existingWorkflows = getConflictingFiles(workflowsDir, manifest.commands);
-  const existingSkills = getConflictingDirs(skillsDir, manifest.skills);
-
-  if ((existingRules.length > 0 || existingWorkflows.length > 0 || existingSkills.length > 0) && !args.force) {
-    console.log();
-    console.log(pc.yellow("⚠ Existing files found:"));
-    for (const file of [...existingRules, ...existingWorkflows, ...existingSkills]) {
-      console.log(pc.dim(`   └─ ${file}`));
-    }
-    console.log();
-
-    const proceed = await p.confirm({
-      message: "Overwrite existing files?",
-      initialValue: false,
-    });
-
-    if (p.isCancel(proceed) || !proceed) {
-      p.cancel("Operation cancelled");
-      process.exit(0);
-    }
-  }
-
-  let selectedCommands: string[] = [];
-  let selectedRules: string[] = [];
-  let selectedSkills: string[] = [];
-
-  // Commands become workflows in AntiGravity
-  if (shouldInitCommands) {
-    if (args.all) {
-      selectedCommands = manifest.commands;
-    } else {
-      const selection = await selectTemplates("commands", manifest.commands);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedCommands = selection;
-    }
-  }
-
-  if (shouldInitRules) {
-    if (args.all) {
-      selectedRules = manifest.rules;
-    } else {
-      const selection = await selectTemplates("rules", manifest.rules);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedRules = selection;
-    }
-  }
-
-  if (shouldInitSkills) {
-    if (args.all) {
-      selectedSkills = manifest.skills;
-    } else {
-      const selection = await selectTemplates("skills", manifest.skills);
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      selectedSkills = selection;
-    }
-  }
-
-  if (selectedCommands.length === 0 && selectedRules.length === 0 && selectedSkills.length === 0) {
-    p.cancel("No templates selected");
-    process.exit(0);
-  }
-
-  const results = {
-    workflows: [] as string[],
-    rules: [] as string[],
-    skills: [] as string[],
-  };
-
-  try {
-    ensureDir(agentDir);
-    ensureDir(rulesDir);
-    ensureDir(workflowsDir);
-    ensureDir(skillsDir);
-
-    // Install commands as workflows
-    if (selectedCommands.length > 0) {
-      s.start("Installing workflows...");
-      const templates = await fetchMultipleTemplates("commands", selectedCommands);
-      
-      for (const [filename, content] of templates) {
-        const transformedContent = transformCommandToWorkflow(content, filename);
-        const filePath = join(workflowsDir, filename);
-        writeFile(filePath, transformedContent);
-        results.workflows.push(filename);
-      }
-      s.stop("Workflows installed");
-    }
-
-    // Install rules with AntiGravity format
-    if (selectedRules.length > 0) {
-      s.start("Installing rules...");
-      const templates = await fetchMultipleTemplates("rules", selectedRules);
-      
-      for (const [filename, content] of templates) {
-        const transformedContent = transformRuleForAntiGravity(content, filename);
-        const filePath = join(rulesDir, filename);
-        writeFile(filePath, transformedContent);
-        results.rules.push(filename);
-      }
-      s.stop("Rules installed");
-    }
-
-    // Install skills with AntiGravity format
-    if (selectedSkills.length > 0) {
-      s.start("Installing skills...");
-      for (const skillName of selectedSkills) {
-        const success = copyLocalSkillForAntiGravity(skillName, skillsDir);
-        if (success) {
-          results.skills.push(skillName);
-        }
-      }
-      s.stop("Skills installed");
-    }
-
-    printDivider();
-    console.log();
-
-    if (results.workflows.length > 0) {
-      printSuccess(`Workflows: ${highlight(results.workflows.length.toString())} added`);
-      for (const wf of results.workflows) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${wf}`));
-      }
-    }
-
-    if (results.rules.length > 0) {
-      printSuccess(`Rules: ${highlight(results.rules.length.toString())} added`);
-      for (const rule of results.rules) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${rule}`));
-      }
-    }
-
-    if (results.skills.length > 0) {
-      printSuccess(`Skills: ${highlight(results.skills.length.toString())} added`);
-      for (const skill of results.skills) {
-        console.log(pc.dim(`   └─ ${pc.green("+")} ${skill}`));
-      }
-    }
-
-    console.log();
-    p.outro(pc.green("✨ Google AntiGravity configuration created successfully!"));
-  } catch (error) {
-    s.stop("Failed");
-    p.cancel(
-      `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-    process.exit(1);
-  }
+function cancel(message = "Operation cancelled"): never {
+  p.cancel(message);
+  process.exit(0);
 }
 
 async function selectTemplates(
   type: TemplateType,
-  availableTemplates: string[]
+  availableTemplates: string[],
 ): Promise<string[] | symbol> {
   const labelFn = type === "skills" ? getSkillLabel : getTemplateLabel;
 
@@ -408,14 +82,9 @@ async function selectTemplates(
   return selectedTemplates as string[] | symbol;
 }
 
-async function handleConflicts(
-  type: TemplateType,
-  conflictingFiles: string[]
-): Promise<ConflictStrategy | symbol> {
+async function handleConflicts(conflictingFiles: string[]): Promise<ConflictStrategy | symbol> {
   console.log();
-  console.log(
-    pc.yellow(`⚠ ${conflictingFiles.length} existing ${type} found:`)
-  );
+  console.log(pc.yellow(`⚠ ${conflictingFiles.length} existing files found:`));
   for (const file of conflictingFiles) {
     console.log(pc.dim(`   └─ ${file}`));
   }
@@ -425,138 +94,83 @@ async function handleConflicts(
     message: "How would you like to handle conflicts?",
     options: [
       {
-        value: "overwrite" as ConflictStrategy,
+        value: "overwrite",
         label: "Overwrite existing files",
         hint: "Replace all conflicting files",
       },
       {
-        value: "merge" as ConflictStrategy,
+        value: "merge",
         label: "Merge (keep existing, add new only)",
         hint: "Skip files that already exist",
       },
       {
-        value: "cancel" as ConflictStrategy,
+        value: "cancel",
         label: "Cancel",
         hint: "Abort the operation",
       },
     ],
   });
 
-  return strategy as ConflictStrategy | symbol;
+  if (p.isCancel(strategy) || strategy === "cancel") return Symbol.for("cancel");
+  return strategy as ConflictStrategy;
 }
 
-async function installTemplates(
-  type: TemplateType,
-  targetDir: string,
-  selectedTemplates: string[],
-  conflictStrategy: ConflictStrategy,
-  target: InstructionTarget
-): Promise<InitResult> {
-  const result: InitResult = { added: [], skipped: [] };
-  
-  // For Cursor target, rules need .mdc extension, commands stay .md
-  // For GitHub Copilot, everything stays .md
-  const expectedFilenames = selectedTemplates.map((filename) => {
-    if (target === "cursor" && type === "rules" && filename.endsWith(".md")) {
-      return convertMdToMdc(filename);
+async function resolveSelection(
+  manifest: TemplateManifest,
+  args: { all?: boolean },
+  types: Record<TemplateType, boolean>,
+): Promise<TemplateSelection> {
+  const selection: TemplateSelection = { commands: [], rules: [], skills: [] };
+
+  for (const type of ["commands", "rules", "skills"] as const) {
+    if (!types[type]) continue;
+
+    if (args.all) {
+      selection[type] = manifest[type];
+      continue;
     }
-    return filename;
-  });
-  
-  const conflictingFiles = getConflictingFiles(targetDir, expectedFilenames);
 
-  let templatesToInstall: string[];
-
-  if (conflictStrategy === "merge") {
-    templatesToInstall = selectedTemplates.filter(
-      (t) => {
-        const expectedName = target === "cursor" && type === "rules" && t.endsWith(".md")
-          ? convertMdToMdc(t)
-          : t;
-        return !conflictingFiles.includes(expectedName);
-      }
-    );
-    result.skipped = conflictingFiles.filter((f) =>
-      expectedFilenames.includes(f)
-    );
-  } else {
-    templatesToInstall = selectedTemplates;
+    const picked = await selectTemplates(type, manifest[type]);
+    if (p.isCancel(picked)) cancel();
+    selection[type] = picked as string[];
   }
 
-  if (templatesToInstall.length === 0) {
-    return result;
-  }
-
-  const templates = await fetchMultipleTemplates(type, templatesToInstall);
-
-  ensureDir(targetDir);
-
-  for (const [filename, content] of templates) {
-    // Convert .md to .mdc for rules when target is cursor
-    const outputFilename = target === "cursor" && type === "rules" && filename.endsWith(".md")
-      ? convertMdToMdc(filename)
-      : filename;
-    
-    // Transform toc.md content for Cursor to fix links
-    let transformedContent = content;
-    if (target === "cursor" && type === "rules" && filename === "toc.md") {
-      transformedContent = transformTocContentForCursor(content);
-    }
-    
-    const filePath = join(targetDir, outputFilename);
-    writeFile(filePath, transformedContent);
-    result.added.push(outputFilename);
-  }
-
-  return result;
+  return selection;
 }
 
-async function installSkills(
-  targetDir: string,
-  selectedSkills: string[],
-  conflictStrategy: ConflictStrategy,
-  target: InstructionTarget
-): Promise<InitResult> {
-  const result: InitResult = { added: [], skipped: [] };
-  const conflictingDirs = getConflictingDirs(targetDir, selectedSkills);
+function printTargetResult(result: TargetInstallResult, excluded: string[]): void {
+  const config = getTargetConfig(result.target);
+  printSuccess(highlight(config.label));
 
-  let skillsToInstall: string[];
+  const groups: [string, string[]][] = [
+    [config.commandsLabel, result.commands],
+    [config.rulesLabel, result.rules],
+    ["skills", result.skills],
+  ];
 
-  if (conflictStrategy === "merge") {
-    skillsToInstall = selectedSkills.filter(
-      (s) => !conflictingDirs.includes(s)
+  for (const [label, items] of groups) {
+    if (items.length === 0) continue;
+    console.log(pc.dim(`   ${label}: ${pc.green(`+${items.length}`)}  ${items.join(", ")}`));
+  }
+
+  for (const skipped of result.skipped) {
+    console.log(pc.dim(`   ${pc.yellow("○")} ${skipped} (kept existing)`));
+  }
+
+  if (excluded.length > 0) {
+    console.log(
+      pc.dim(
+        `   profile: ${excluded.length} left out (${excluded.join(", ")}), use --full to include`,
+      ),
     );
-    result.skipped = conflictingDirs.filter((d) =>
-      selectedSkills.includes(d)
-    );
-  } else {
-    skillsToInstall = selectedSkills;
   }
-
-  if (skillsToInstall.length === 0) {
-    return result;
-  }
-
-  ensureDir(targetDir);
-
-  // Convert SKILL.md to SKILL.mdc for Cursor target
-  const convertToMdc = target === "cursor";
-
-  for (const skillName of skillsToInstall) {
-    const success = copyLocalSkill(skillName, targetDir, convertToMdc);
-    if (success) {
-      result.added.push(skillName);
-    }
-  }
-
-  return result;
 }
 
 export const initCommand = defineCommand({
   meta: {
     name: "init",
     description:
-      "Initialize .cursor/commands, .cursor/rules, and .cursor/skills in your project",
+      "Install FiveM DevKit commands, rules and skills for one or more AI IDEs (e.g. Claude Code + AntiGravity)",
   },
   args: {
     force: {
@@ -589,41 +203,43 @@ export const initCommand = defineCommand({
       description: "Install all templates without selection prompts",
       default: false,
     },
+    full: {
+      type: "boolean",
+      description: "Ignore per-target profiles and install every selected template in every IDE",
+      default: false,
+    },
     target: {
       type: "string",
       alias: "t",
-      description: "Target AI IDE: 'cursor', 'github-copilot', or 'google-antigravity'",
+      description: `Target AI IDE(s), comma-separated: ${ALL_TARGETS.join(", ")}, or 'dual' (claude-code + google-antigravity)`,
       default: undefined,
     },
   },
   async run({ args }) {
     const cwd = process.cwd();
-    const cursorDir = getCursorDir(cwd);
-    const commandsDir = getCommandsDir(cwd);
-    const rulesDir = getRulesDir(cwd);
-    const skillsDir = getSkillsDir(cwd);
 
     const initAll = !args.commands && !args.rules && !args.skills;
-    const shouldInitCommands = initAll || args.commands;
-    const shouldInitRules = initAll || args.rules;
-    const shouldInitSkills = initAll || args.skills;
+    const types: Record<TemplateType, boolean> = {
+      commands: initAll || args.commands,
+      rules: initAll || args.rules,
+      skills: initAll || args.skills,
+    };
 
     p.intro(pc.bgCyan(pc.black(" fivem-devkit init ")));
 
-    let target: InstructionTarget;
-    if (args.target === "github-copilot" || args.target === "cursor" || args.target === "google-antigravity") {
-      target = args.target;
-    } else {
-      const selection = await promptTargetSelection();
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
+    let targets = parseTargets(args.target);
+    if (!targets) {
+      if (args.target) {
+        p.log.warn(`Unknown target "${args.target}". Valid: ${ALL_TARGETS.join(", ")}, dual`);
       }
-      target = selection;
+      const selection = await promptTargetsSelection(readSavedTargets(cwd) ?? DUAL_TARGETS);
+      if (p.isCancel(selection)) cancel();
+      targets = selection as InstructionTarget[];
     }
 
-    const s = p.spinner();
+    p.log.info(`Targets: ${highlight(formatTargets(targets))}`);
 
+    const s = p.spinner();
     let manifest: TemplateManifest;
 
     try {
@@ -632,234 +248,93 @@ export const initCommand = defineCommand({
       s.stop("Template manifest loaded");
     } catch (error) {
       s.stop("Failed to fetch manifest");
-      p.cancel(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      p.cancel(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       process.exit(1);
     }
 
-    if (target === "github-copilot") {
-      await handleCopilotInstallation(
-        cwd,
-        manifest,
-        args,
-        shouldInitCommands,
-        shouldInitRules,
-        shouldInitSkills
-      );
-      return;
+    const selection = await resolveSelection(manifest, args, types);
+    if (
+      selection.commands.length === 0 &&
+      selection.rules.length === 0 &&
+      selection.skills.length === 0
+    ) {
+      cancel("No templates selected");
     }
 
-    if (target === "google-antigravity") {
-      await handleAntiGravityInstallation(
-        cwd,
-        manifest,
-        args,
-        shouldInitCommands,
-        shouldInitRules,
-        shouldInitSkills
-      );
-      return;
+    if (targets.includes("github-copilot")) {
+      const canProceed = await checkCopilotConflicts(cwd, args.force ?? false);
+      if (!canProceed) cancel();
     }
 
-    const results: {
-      commands?: InitResult;
-      rules?: InitResult;
-      skills?: InitResult;
-    } = {};
+    const plans = targets.map((target) =>
+      args.full
+        ? { target, selection, excluded: [] as string[] }
+        : { target, ...applyTargetProfile(target, selection, manifest) },
+    );
+
+    let strategy: ConflictStrategy = "overwrite";
+    const conflicts = plans
+      .filter((plan) => plan.target !== "github-copilot")
+      .flatMap((plan) => findConflicts(plan.target, cwd, plan.selection));
+
+    if (conflicts.length > 0 && !args.force) {
+      const picked = await handleConflicts(conflicts);
+      if (typeof picked === "symbol") cancel();
+      strategy = picked;
+    }
+
+    const boardCreated = needsAgentBoard(targets, selection) && ensureAgentBoard(cwd);
+
+    // The second-brain rule points at the vault, so make sure it exists with the standard pieces
+    let brainCreated: string[] = [];
+    if (selection.rules.includes(SECOND_BRAIN_RULE)) {
+      brainCreated = scaffoldBrain(cwd);
+      writeBrainIndex(getBrainDir(cwd));
+    }
+
+    const results: TargetInstallResult[] = [];
 
     try {
-      ensureDir(cursorDir);
-
-      if (shouldInitCommands) {
-        let selectedCommands: string[];
-
-        if (args.all) {
-          selectedCommands = manifest.commands;
-        } else {
-          const selection = await selectTemplates("commands", manifest.commands);
-          if (p.isCancel(selection)) {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          selectedCommands = selection;
-        }
-
-        const conflictingCommands = getConflictingFiles(
-          commandsDir,
-          selectedCommands
-        );
-        let commandStrategy: ConflictStrategy = "overwrite";
-
-        if (conflictingCommands.length > 0 && !args.force) {
-          const strategy = await handleConflicts("commands", conflictingCommands);
-          if (p.isCancel(strategy) || strategy === "cancel") {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          commandStrategy = strategy;
-        }
-
-        s.start("Installing commands...");
-        results.commands = await installTemplates(
-          "commands",
-          commandsDir,
-          selectedCommands,
-          commandStrategy,
-          target
-        );
-        s.stop("Commands installed");
-      }
-
-      if (shouldInitRules) {
-        let selectedRules: string[];
-
-        if (args.all) {
-          selectedRules = manifest.rules;
-        } else {
-          const selection = await selectTemplates("rules", manifest.rules);
-          if (p.isCancel(selection)) {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          selectedRules = selection;
-        }
-
-        // For Cursor, rules need .mdc extension, so check for .mdc files
-        const expectedRuleFilenames = selectedRules.map((filename) => {
-          return target === "cursor" && filename.endsWith(".md")
-            ? convertMdToMdc(filename)
-            : filename;
-        });
-        const conflictingRules = getConflictingFiles(rulesDir, expectedRuleFilenames);
-        let ruleStrategy: ConflictStrategy = "overwrite";
-
-        if (conflictingRules.length > 0 && !args.force) {
-          const strategy = await handleConflicts("rules", conflictingRules);
-          if (p.isCancel(strategy) || strategy === "cancel") {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          ruleStrategy = strategy;
-        }
-
-        s.start("Installing rules...");
-        results.rules = await installTemplates(
-          "rules",
-          rulesDir,
-          selectedRules,
-          ruleStrategy,
-          target
-        );
-        s.stop("Rules installed");
-      }
-
-      if (shouldInitSkills) {
-        let selectedSkills: string[];
-
-        if (args.all) {
-          selectedSkills = manifest.skills;
-        } else {
-          const selection = await selectTemplates("skills", manifest.skills);
-          if (p.isCancel(selection)) {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          selectedSkills = selection;
-        }
-
-        const conflictingSkills = getConflictingDirs(skillsDir, selectedSkills);
-        let skillStrategy: ConflictStrategy = "overwrite";
-
-        if (conflictingSkills.length > 0 && !args.force) {
-          const strategy = await handleConflicts("skills", conflictingSkills);
-          if (p.isCancel(strategy) || strategy === "cancel") {
-            p.cancel("Operation cancelled");
-            process.exit(0);
-          }
-          skillStrategy = strategy;
-        }
-
-        s.start("Installing skills...");
-        results.skills = await installSkills(
-          skillsDir,
-          selectedSkills,
-          skillStrategy,
-          target
-        );
-        s.stop("Skills installed");
-      }
-
-      printDivider();
-      console.log();
-
-      if (results.commands) {
-        const { added, skipped } = results.commands;
-        if (added.length > 0 || skipped.length > 0) {
-          printSuccess(
-            `Commands: ${highlight(added.length.toString())} added${skipped.length > 0 ? `, ${pc.yellow(skipped.length.toString())} skipped` : ""}`
-          );
-          for (const f of added) {
-            console.log(pc.dim(`   └─ ${pc.green("+")} ${f}`));
-          }
-          for (const f of skipped) {
-            console.log(pc.dim(`   └─ ${pc.yellow("○")} ${f} (kept existing)`));
-          }
-        }
-      }
-
-      if (results.rules) {
-        const { added, skipped } = results.rules;
-        if (added.length > 0 || skipped.length > 0) {
-          printSuccess(
-            `Rules: ${highlight(added.length.toString())} added${skipped.length > 0 ? `, ${pc.yellow(skipped.length.toString())} skipped` : ""}`
-          );
-          for (const f of added) {
-            console.log(pc.dim(`   └─ ${pc.green("+")} ${f}`));
-          }
-          for (const f of skipped) {
-            console.log(pc.dim(`   └─ ${pc.yellow("○")} ${f} (kept existing)`));
-          }
-        }
-      }
-
-      if (results.skills) {
-        const { added, skipped } = results.skills;
-        if (added.length > 0 || skipped.length > 0) {
-          printSuccess(
-            `Skills: ${highlight(added.length.toString())} added${skipped.length > 0 ? `, ${pc.yellow(skipped.length.toString())} skipped` : ""}`
-          );
-          for (const f of added) {
-            console.log(pc.dim(`   └─ ${pc.green("+")} ${f}`));
-          }
-          for (const f of skipped) {
-            console.log(pc.dim(`   └─ ${pc.yellow("○")} ${f} (kept existing)`));
-          }
-        }
-      }
-
-      const totalAdded =
-        (results.commands?.added.length ?? 0) +
-        (results.rules?.added.length ?? 0) +
-        (results.skills?.added.length ?? 0);
-      const totalSkipped =
-        (results.commands?.skipped.length ?? 0) +
-        (results.rules?.skipped.length ?? 0) +
-        (results.skills?.skipped.length ?? 0);
-
-      if (totalAdded === 0 && totalSkipped > 0) {
-        console.log();
-        p.outro(pc.yellow("No new templates added (all selected files already exist)"));
-      } else {
-        console.log();
-        p.outro(pc.green("✨ FiveM DevKit initialized successfully!"));
+      for (const plan of plans) {
+        const label = getTargetConfig(plan.target).label;
+        s.start(`Installing for ${label}...`);
+        results.push(await installForTarget(plan.target, cwd, plan.selection, strategy));
+        s.stop(`${label} ready`);
       }
     } catch (error) {
       s.stop("Failed");
-      p.cancel(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+      p.cancel(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       process.exit(1);
+    }
+
+    saveTargets(targets, cwd);
+
+    printDivider();
+    console.log();
+    results.forEach((result, index) => {
+      printTargetResult(result, plans[index].excluded);
+    });
+
+    if (targets.includes("claude-code")) {
+      console.log(pc.dim("   CLAUDE.md updated (managed block)"));
+    }
+    if (boardCreated) {
+      console.log(pc.dim(`   ${AGENT_BOARD_FILE} created for multi-agent coordination`));
+    }
+    if (brainCreated.length > 0) {
+      console.log(pc.dim(`   Second Brain: ${brainCreated.length} files added (existing notes untouched)`));
+    }
+
+    const totalAdded = results.reduce(
+      (sum, r) => sum + r.commands.length + r.rules.length + r.skills.length,
+      0,
+    );
+
+    console.log();
+    if (totalAdded === 0) {
+      p.outro(pc.yellow("No new templates added (all selected files already exist)"));
+    } else {
+      p.outro(pc.green(`✨ FiveM DevKit initialized for ${formatTargets(targets)}!`));
     }
   },
 });

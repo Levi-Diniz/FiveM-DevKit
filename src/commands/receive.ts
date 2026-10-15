@@ -18,6 +18,7 @@ import {
   ensureDir,
   getCursorDir,
   getAgentDir,
+  getClaudeDir,
   getGitHubDir,
 } from "../utils/fs";
 import type { InstructionTarget } from "../types/init";
@@ -111,6 +112,14 @@ function getConfigInfo(type: InstructionTarget, cwd: string): ConfigInfo {
         directory: ".agents",
         targetPath: getAgentDir(cwd),
         hasConflict: dirExists(getAgentDir(cwd)),
+      };
+    case "claude-code":
+      return {
+        type,
+        label: "Claude Code",
+        directory: ".claude",
+        targetPath: getClaudeDir(cwd),
+        hasConflict: dirExists(getClaudeDir(cwd)),
       };
     case "github-copilot":
       return {

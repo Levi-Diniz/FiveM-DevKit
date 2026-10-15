@@ -1,28 +1,22 @@
+import { join } from "node:path";
 import * as p from "@clack/prompts";
 import { defineCommand } from "citty";
-import { join } from "node:path";
 import pc from "picocolors";
 import type { InstructionTarget } from "../types/init";
 import { highlight } from "../utils/branding";
+import { dirExists, ensureDir, fileExists, writeFile } from "../utils/fs";
+import { updateClaudeMd } from "../utils/install";
 import {
-  dirExists,
-  ensureDir,
-  fileExists,
-  writeFile,
-  readFile,
-  deleteFile,
-} from "../utils/fs";
-import {
-  promptTargetSelection,
-  isValidTarget,
-  getTargetDirectories,
+  ALL_TARGETS,
+  formatTargets,
   getTargetConfig,
+  getTargetDirectories,
+  resolveTargets,
 } from "../utils/target";
-import { convertMdToMdc } from "../utils/templates";
 
 type ItemType = "command" | "rule" | "skill";
 
-const COMMAND_TEMPLATE = `You are a helpful assistant. Describe what this command does.
+const COMMAND_BODY = `You are a helpful assistant. Describe what this command does.
 
 ## Instructions
 - Step 1: ...
@@ -31,17 +25,20 @@ const COMMAND_TEMPLATE = `You are a helpful assistant. Describe what this comman
 ## Rules
 - Be concise
 - Focus on the task
-
-START: Wait for user input.
 `;
 
-const RULE_TEMPLATE = `---
-description: Describe when this rule should apply
-globs: 
-alwaysApply: false
----
+function getCommandTemplate(target: InstructionTarget): string {
+  switch (target) {
+    case "claude-code":
+      return `---\ndescription: Describe what this command does\n---\n\n${COMMAND_BODY}\n## Input\n\n$ARGUMENTS\n`;
+    case "google-antigravity":
+      return `---\ndescription: Describe what this workflow does\n---\n\n${COMMAND_BODY}`;
+    default:
+      return `${COMMAND_BODY}\nSTART: Wait for user input.\n`;
+  }
+}
 
-# Rule Title
+const RULE_BODY = `# Rule Title
 
 Describe the rule behavior here.
 
@@ -50,13 +47,18 @@ Describe the rule behavior here.
 - Guideline 2
 `;
 
-const SKILL_TEMPLATE = `---
-description: Describe when this skill should be activated
-globs:
-alwaysApply: false
----
+function getRuleTemplate(target: InstructionTarget): string {
+  switch (target) {
+    case "claude-code":
+      return `---\n# Delete this frontmatter to load the rule in every session, or narrow the globs.\npaths:\n  - "**/*"\n---\n\n${RULE_BODY}`;
+    case "google-antigravity":
+      return `---\ntrigger: model_decision\ndescription: Describe when this rule should apply\n---\n\n${RULE_BODY}`;
+    default:
+      return `---\ndescription: Describe when this rule should apply\nglobs: \nalwaysApply: false\n---\n\n${RULE_BODY}`;
+  }
+}
 
-# Skill Name
+const SKILL_BODY = `# Skill Name
 
 Brief description of what this skill enables.
 
@@ -76,6 +78,17 @@ Use this skill when:
 For detailed guidance, see the references folder:
 - [Reference 1](./references/example.md) - Description
 `;
+
+function getSkillTemplate(target: InstructionTarget, slug: string): string {
+  switch (target) {
+    case "claude-code":
+      return `---\nname: ${slug}\ndescription: Describe what this skill does and when to use it\n---\n\n${SKILL_BODY}`;
+    case "google-antigravity":
+      return `---\ntrigger: manual\ndescription: Describe when this skill should be activated\n---\n\n${SKILL_BODY}`;
+    default:
+      return `---\ndescription: Describe when this skill should be activated\nglobs:\nalwaysApply: false\n---\n\n${SKILL_BODY}`;
+  }
+}
 
 const SKILL_REFERENCE_TEMPLATE = `# Reference Title
 
@@ -99,10 +112,37 @@ function generateSlug(name: string): string {
     .trim();
 }
 
+/** Path of the main file (or skill directory) for an item in a target. */
+function getItemPath(target: InstructionTarget, itemType: ItemType, slug: string): string {
+  const directories = getTargetDirectories(target);
+  const config = getTargetConfig(target);
+
+  if (itemType === "skill") return join(directories.skillsDir, slug);
+  if (itemType === "command")
+    return join(directories.commandsDir, `${slug}${config.commandsExtension}`);
+  return join(directories.rulesDir, `${slug}${config.rulesExtension}`);
+}
+
+function createItem(target: InstructionTarget, itemType: ItemType, slug: string): string {
+  const itemPath = getItemPath(target, itemType, slug);
+
+  if (itemType === "skill") {
+    const skillFile = target === "cursor" ? "SKILL.mdc" : "SKILL.md";
+    ensureDir(join(itemPath, "references"));
+    writeFile(join(itemPath, skillFile), getSkillTemplate(target, slug));
+    writeFile(join(itemPath, "references", "example.md"), SKILL_REFERENCE_TEMPLATE);
+    return join(itemPath, skillFile);
+  }
+
+  const template = itemType === "command" ? getCommandTemplate(target) : getRuleTemplate(target);
+  writeFile(itemPath, template);
+  return itemPath;
+}
+
 export const addCommand = defineCommand({
   meta: {
     name: "add",
-    description: "Add a new command, rule, or skill",
+    description: "Add a new command, rule, or skill to every configured AI IDE",
   },
   args: {
     type: {
@@ -117,26 +157,19 @@ export const addCommand = defineCommand({
     },
     target: {
       type: "string",
-      description: "Target IDE: 'cursor', 'github-copilot', or 'google-antigravity'",
+      description: `Target IDE(s), comma-separated: ${ALL_TARGETS.join(", ")}, or 'dual'. Defaults to the targets saved by init`,
     },
   },
   async run({ args }) {
     p.intro(pc.bgCyan(pc.black(" fivem-devkit add ")));
 
-    let target: InstructionTarget;
-    if (isValidTarget(args.target)) {
-      target = args.target;
-    } else {
-      const selection = await promptTargetSelection();
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      target = selection;
+    const resolved = await resolveTargets(args.target);
+    if (p.isCancel(resolved)) {
+      p.cancel("Operation cancelled");
+      process.exit(0);
     }
-
-    const targetConfig = getTargetConfig(target);
-    const directories = getTargetDirectories(target);
+    const targets = resolved as InstructionTarget[];
+    const onlyAntiGravity = targets.length === 1 && targets[0] === "google-antigravity";
 
     let itemType: ItemType;
     let itemName: string;
@@ -149,8 +182,8 @@ export const addCommand = defineCommand({
         options: [
           {
             value: "command",
-            label: target === "google-antigravity" ? "Workflow" : "Command",
-            hint: target === "google-antigravity" ? "A workflow template" : "A reusable prompt template",
+            label: onlyAntiGravity ? "Workflow" : "Command",
+            hint: "A reusable prompt template (workflow in AntiGravity)",
           },
           {
             value: "rule",
@@ -173,14 +206,12 @@ export const addCommand = defineCommand({
       itemType = typeResult as ItemType;
     }
 
-    const itemLabel = itemType === "command" ? targetConfig.commandsLabel : itemType;
-
     if (args.name) {
       itemName = args.name;
     } else {
       const nameResult = await p.text({
-        message: `Enter ${itemLabel} name:`,
-        placeholder: itemType === "command" ? "my-command" : itemType === "rule" ? "my-rule" : "my-skill",
+        message: `Enter ${itemType} name:`,
+        placeholder: `my-${itemType}`,
         validate: (value) => {
           if (!value.trim()) return "Name is required";
           if (value.length < 2) return "Name must be at least 2 characters";
@@ -197,47 +228,15 @@ export const addCommand = defineCommand({
     }
 
     const slug = generateSlug(itemName);
-    const isCommand = itemType === "command";
-    const isSkill = itemType === "skill";
-    const isRule = itemType === "rule";
 
-    let targetPath: string;
-    let displayPath: string;
+    const existing = targets.filter((target) => {
+      const itemPath = getItemPath(target, itemType, slug);
+      return itemType === "skill" ? dirExists(itemPath) : fileExists(itemPath);
+    });
 
-    if (isSkill) {
-      targetPath = join(directories.skillsDir, slug);
-      displayPath = targetPath;
-    } else {
-      const targetDir = isCommand ? directories.commandsDir : directories.rulesDir;
-      const extension = ".md";
-      targetPath = join(targetDir, `${slug}${extension}`);
-      displayPath = targetPath;
-    }
-
-    const getExpectedExtension = (): string => {
-      if (isSkill) return "";
-      if (isCommand) return targetConfig.commandsExtension;
-      return targetConfig.rulesExtension;
-    };
-
-    const checkPath = isSkill
-      ? targetPath
-      : isCommand
-        ? targetPath
-        : join(directories.rulesDir, `${slug}${getExpectedExtension()}`);
-
-    const exists = isSkill
-      ? dirExists(targetPath)
-      : fileExists(targetPath) || (!isCommand && fileExists(checkPath));
-
-    if (exists) {
-      const displayName = isSkill
-        ? slug
-        : isCommand
-          ? `${slug}.md`
-          : `${slug}${getExpectedExtension()}`;
+    if (existing.length > 0) {
       const shouldOverwrite = await p.confirm({
-        message: `${highlight(displayName)} already exists. Overwrite?`,
+        message: `${highlight(slug)} already exists in ${formatTargets(existing)}. Overwrite?`,
         initialValue: false,
       });
 
@@ -247,64 +246,23 @@ export const addCommand = defineCommand({
       }
     }
 
-    const s = p.spinner();
-    s.start(`Creating ${itemLabel}...`);
-
     try {
-      if (isSkill) {
-        ensureDir(targetPath);
-        ensureDir(join(targetPath, "references"));
-        const skillMdPath = join(targetPath, "SKILL.md");
-        writeFile(skillMdPath, SKILL_TEMPLATE);
-        writeFile(join(targetPath, "references", "example.md"), SKILL_REFERENCE_TEMPLATE);
-
-        if (target === "cursor") {
-          const skillMdcPath = join(targetPath, "SKILL.mdc");
-          const content = readFile(skillMdPath);
-          writeFile(skillMdcPath, content);
-          deleteFile(skillMdPath);
-        }
-      } else {
-        const targetDir = isCommand ? directories.commandsDir : directories.rulesDir;
-        ensureDir(targetDir);
-        const template = isCommand ? COMMAND_TEMPLATE : RULE_TEMPLATE;
-
-        if (isCommand) {
-          writeFile(targetPath, template);
-        } else if (isRule) {
-          writeFile(targetPath, template);
-          if (target === "cursor") {
-            const mdcPath = join(targetDir, convertMdToMdc(`${slug}.md`));
-            const content = readFile(targetPath);
-            writeFile(mdcPath, content);
-            deleteFile(targetPath);
-          }
-        }
-      }
-
-      s.stop(`${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} created`);
-
       console.log();
-      console.log(pc.dim("  Target: ") + highlight(targetConfig.label));
-      if (isSkill) {
-        console.log(pc.dim("  Directory: ") + highlight(displayPath));
-        const skillFileName = target === "cursor" ? "SKILL.mdc" : "SKILL.md";
-        console.log(pc.dim("  Main file: ") + highlight(join(displayPath, skillFileName)));
-      } else if (isCommand) {
-        console.log(pc.dim("  File: ") + highlight(displayPath));
-      } else {
-        const finalPath = target === "cursor"
-          ? join(directories.rulesDir, convertMdToMdc(`${slug}.md`))
-          : targetPath;
-        console.log(pc.dim("  File: ") + highlight(finalPath));
+      for (const target of targets) {
+        const createdPath = createItem(target, itemType, slug);
+        if (target === "claude-code" && itemType === "command") {
+          updateClaudeMd(process.cwd());
+        }
+        console.log(pc.dim(`  ${getTargetConfig(target).label}: `) + highlight(createdPath));
       }
       console.log();
 
       p.outro(
-        pc.green(`✨ ${itemLabel.charAt(0).toUpperCase() + itemLabel.slice(1)} created! Edit the file to customize it.`)
+        pc.green(
+          `✨ ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} created! Edit the file(s) to customize it.`,
+        ),
       );
     } catch (error) {
-      s.stop("Failed");
       p.cancel(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       process.exit(1);
     }

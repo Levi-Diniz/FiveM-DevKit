@@ -18,10 +18,12 @@ import {
   fetchMultipleTemplates,
   copyLocalSkill,
   stripFrontmatter,
-  extractFrontmatter,
+  isAlwaysOnRule,
+  renderTemplateForTarget,
   generateCopilotIndex,
 } from "./templates";
 import { printSuccess } from "./branding";
+import { resolveBrainDirName } from "./brain";
 
 export interface CopilotInstallResult {
   commands: string[];
@@ -32,7 +34,8 @@ export interface CopilotInstallResult {
 
 async function installCopilotCommands(
   commandsDir: string,
-  selectedCommands: string[]
+  selectedCommands: string[],
+  brainDir: string
 ): Promise<string[]> {
   if (selectedCommands.length === 0) return [];
 
@@ -41,7 +44,7 @@ async function installCopilotCommands(
   const installed: string[] = [];
 
   for (const [filename, content] of commandsMap) {
-    const cleanContent = stripFrontmatter(content);
+    const cleanContent = renderTemplateForTarget(stripFrontmatter(content), "github-copilot", brainDir);
     const filePath = join(commandsDir, filename);
     writeFile(filePath, cleanContent);
     installed.push(filename);
@@ -52,7 +55,8 @@ async function installCopilotCommands(
 
 async function installCopilotRules(
   rulesDir: string,
-  selectedRules: string[]
+  selectedRules: string[],
+  brainDir: string
 ): Promise<{ installed: string[]; alwaysApply: string[] }> {
   if (selectedRules.length === 0) return { installed: [], alwaysApply: [] };
 
@@ -62,8 +66,7 @@ async function installCopilotRules(
   const alwaysApply: string[] = [];
 
   for (const [filename, content] of rulesMap) {
-    const frontmatter = extractFrontmatter(content);
-    const cleanContent = stripFrontmatter(content);
+    const cleanContent = renderTemplateForTarget(stripFrontmatter(content), "github-copilot", brainDir);
 
     // Templates are now .md, but handle .mdc for backward compatibility
     const mdFilename = filename.endsWith(".md") ? filename : filename.replace(/\.mdc$/, ".md");
@@ -72,7 +75,7 @@ async function installCopilotRules(
 
     installed.push(mdFilename);
 
-    if (frontmatter.alwaysApply) {
+    if (isAlwaysOnRule(content)) {
       alwaysApply.push(mdFilename);
     }
   }
@@ -151,10 +154,11 @@ export async function installCopilotInstructions(
   const rulesDir = getCopilotRulesDir(cwd);
   const skillsDir = getCopilotSkillsDir(cwd);
   const copilotIndexPath = getCopilotInstructionsPath(cwd);
+  const brainDir = resolveBrainDirName(cwd);
 
   const [installedCommands, rulesResult, installedSkills] = await Promise.all([
-    installCopilotCommands(commandsDir, selectedCommands),
-    installCopilotRules(rulesDir, selectedRules),
+    installCopilotCommands(commandsDir, selectedCommands, brainDir),
+    installCopilotRules(rulesDir, selectedRules, brainDir),
     installCopilotSkills(skillsDir, selectedSkills),
   ]);
 

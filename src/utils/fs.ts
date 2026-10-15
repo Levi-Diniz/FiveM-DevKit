@@ -150,3 +150,24 @@ export function getAgentWorkflowsDir(cwd: string = process.cwd()): string {
 export function getAgentSkillsDir(cwd: string = process.cwd()): string {
   return join(getAgentDir(cwd), "skills");
 }
+
+// Claude Code directory utilities
+export function getClaudeDir(cwd: string = process.cwd()): string {
+  return join(cwd, ".claude");
+}
+
+export function getClaudeCommandsDir(cwd: string = process.cwd()): string {
+  return join(getClaudeDir(cwd), "commands");
+}
+
+export function getClaudeRulesDir(cwd: string = process.cwd()): string {
+  return join(getClaudeDir(cwd), "rules");
+}
+
+export function getClaudeSkillsDir(cwd: string = process.cwd()): string {
+  return join(getClaudeDir(cwd), "skills");
+}
+
+export function getClaudeMdPath(cwd: string = process.cwd()): string {
+  return join(cwd, "CLAUDE.md");
+}

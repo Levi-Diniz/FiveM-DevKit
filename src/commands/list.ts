@@ -1,17 +1,17 @@
+import { join } from "node:path";
 import * as p from "@clack/prompts";
 import { defineCommand } from "citty";
-import { join } from "node:path";
 import pc from "picocolors";
+import type { InstructionTarget } from "../types/init";
 import { highlight, printDivider } from "../utils/branding";
+import { fileExists, listDirs, listFiles, readFile } from "../utils/fs";
 import {
-  fileExists,
-  getCommandsDir,
-  getRulesDir,
-  getSkillsDir,
-  listDirs,
-  listFiles,
-  readFile,
-} from "../utils/fs";
+  ALL_TARGETS,
+  getTargetConfig,
+  getTargetDirectories,
+  parseTargets,
+  readSavedTargets,
+} from "../utils/target";
 
 interface ItemInfo {
   name: string;
@@ -19,33 +19,25 @@ interface ItemInfo {
   description?: string;
 }
 
-function extractDescription(
-  content: string,
-  isCommand: boolean
-): string | undefined {
+function truncate(text: string): string {
+  return text.slice(0, 60) + (text.length > 60 ? "..." : "");
+}
+
+function extractDescription(content: string, isCommand: boolean): string | undefined {
+  const match = content.match(/description:\s*(.+)/);
+  if (match) {
+    return truncate(match[1].trim());
+  }
   if (isCommand) {
     const firstLine = content.trim().split("\n")[0];
-    if (
-      firstLine &&
-      !firstLine.startsWith("#") &&
-      !firstLine.startsWith("---")
-    ) {
-      return firstLine.slice(0, 60) + (firstLine.length > 60 ? "..." : "");
-    }
-  } else {
-    const match = content.match(/description:\s*(.+)/);
-    if (match) {
-      return match[1].trim().slice(0, 60) + (match[1].length > 60 ? "..." : "");
+    if (firstLine && !firstLine.startsWith("#") && !firstLine.startsWith("---")) {
+      return truncate(firstLine);
     }
   }
   return undefined;
 }
 
-function getItems(
-  dir: string,
-  extension: string,
-  isCommand: boolean
-): ItemInfo[] {
+function getItems(dir: string, extension: string, isCommand: boolean): ItemInfo[] {
   const files = listFiles(dir, extension);
   return files.map((file) => {
     const filePath = join(dir, file);
@@ -83,6 +75,24 @@ function getSkills(dir: string): ItemInfo[] {
   });
 }
 
+function printSection(title: string, items: ItemInfo[], verbose: boolean): void {
+  if (items.length === 0) return;
+
+  console.log();
+  console.log(pc.bold(pc.cyan(`  ${title}`)) + pc.dim(` (${items.length})`));
+  console.log();
+
+  for (const item of items) {
+    console.log(`  ${pc.green("●")} ${highlight(item.name)}`);
+    if (item.description) {
+      console.log(pc.dim(`    ${item.description}`));
+    }
+    if (verbose) {
+      console.log(pc.dim(`    ${item.path}`));
+    }
+  }
+}
+
 export const listCommand = defineCommand({
   meta: {
     name: "list",
@@ -107,6 +117,11 @@ export const listCommand = defineCommand({
       description: "Only list skills",
       default: false,
     },
+    target: {
+      type: "string",
+      alias: "t",
+      description: `Target IDE(s), comma-separated: ${ALL_TARGETS.join(", ")}, or 'dual'. Defaults to the targets saved by init`,
+    },
     verbose: {
       type: "boolean",
       alias: "v",
@@ -122,24 +137,30 @@ export const listCommand = defineCommand({
 
     p.intro(pc.bgCyan(pc.black(" fivem-devkit list ")));
 
-    const commandsDir = getCommandsDir();
-    const rulesDir = getRulesDir();
-    const skillsDir = getSkillsDir();
+    const targets: InstructionTarget[] = parseTargets(args.target) ??
+      readSavedTargets() ?? ["cursor"];
 
-    const commands = shouldListCommands
-      ? getItems(commandsDir, ".md", true)
-      : [];
-    const rules = shouldListRules ? getItems(rulesDir, ".mdc", false) : [];
-    const skills = shouldListSkills ? getSkills(skillsDir) : [];
+    const sections = targets.map((target) => {
+      const { commandsDir, rulesDir, skillsDir } = getTargetDirectories(target);
+      const config = getTargetConfig(target);
+      return {
+        target,
+        commands: shouldListCommands ? getItems(commandsDir, config.commandsExtension, true) : [],
+        rules: shouldListRules ? getItems(rulesDir, config.rulesExtension, false) : [],
+        skills: shouldListSkills ? getSkills(skillsDir) : [],
+      };
+    });
 
-    if (commands.length === 0 && rules.length === 0 && skills.length === 0) {
+    const total = sections.reduce(
+      (sum, section) =>
+        sum + section.commands.length + section.rules.length + section.skills.length,
+      0,
+    );
+
+    if (total === 0) {
       console.log();
       console.log(pc.yellow("  No commands, rules, or skills found."));
-      console.log(
-        pc.dim("  Run ") +
-          highlight("fivem-devkit init") +
-          pc.dim(" to get started.")
-      );
+      console.log(pc.dim("  Run ") + highlight("fivem-devkit init") + pc.dim(" to get started."));
       console.log();
       p.outro(pc.dim("Nothing to show"));
       return;
@@ -147,64 +168,22 @@ export const listCommand = defineCommand({
 
     printDivider();
 
-    if (shouldListCommands && commands.length > 0) {
-      console.log();
-      console.log(
-        pc.bold(pc.cyan("  📜 Commands")) + pc.dim(` (${commands.length})`)
-      );
-      console.log();
+    for (const { target, commands, rules, skills } of sections) {
+      const config = getTargetConfig(target);
+      if (targets.length > 1) {
+        console.log();
+        console.log(pc.bold(`  ◆ ${config.label}`));
+      }
 
-      commands.forEach((cmd) => {
-        console.log(`  ${pc.green("●")} ${highlight(cmd.name)}`);
-        if (cmd.description) {
-          console.log(pc.dim(`    ${cmd.description}`));
-        }
-        if (args.verbose) {
-          console.log(pc.dim(`    ${cmd.path}`));
-        }
-      });
+      const commandsTitle =
+        config.commandsLabel.charAt(0).toUpperCase() + config.commandsLabel.slice(1);
+      printSection(`📜 ${commandsTitle}`, commands, args.verbose);
+      printSection("📋 Rules", rules, args.verbose);
+      printSection("🎯 Skills", skills, args.verbose);
+      console.log();
     }
 
-    if (shouldListRules && rules.length > 0) {
-      console.log();
-      console.log(
-        pc.bold(pc.cyan("  📋 Rules")) + pc.dim(` (${rules.length})`)
-      );
-      console.log();
-
-      rules.forEach((rule) => {
-        console.log(`  ${pc.green("●")} ${highlight(rule.name)}`);
-        if (rule.description) {
-          console.log(pc.dim(`    ${rule.description}`));
-        }
-        if (args.verbose) {
-          console.log(pc.dim(`    ${rule.path}`));
-        }
-      });
-    }
-
-    if (shouldListSkills && skills.length > 0) {
-      console.log();
-      console.log(
-        pc.bold(pc.cyan("  🎯 Skills")) + pc.dim(` (${skills.length})`)
-      );
-      console.log();
-
-      skills.forEach((skill) => {
-        console.log(`  ${pc.green("●")} ${highlight(skill.name)}`);
-        if (skill.description) {
-          console.log(pc.dim(`    ${skill.description}`));
-        }
-        if (args.verbose) {
-          console.log(pc.dim(`    ${skill.path}`));
-        }
-      });
-    }
-
-    console.log();
     printDivider();
-
-    const total = commands.length + rules.length + skills.length;
     p.outro(pc.dim(`Total: ${total} item${total !== 1 ? "s" : ""}`));
   },
 });

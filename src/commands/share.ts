@@ -10,6 +10,7 @@ import {
   fileExists,
   getCursorDir,
   getAgentDir,
+  getClaudeDir,
   getGitHubDir,
   getCopilotInstructionsPath,
   getCopilotInstructionsDir,
@@ -74,6 +75,16 @@ function detectAvailableConfigs(cwd: string): ConfigOption[] {
       label: "Google AntiGravity",
       directory: ".agents",
       path: agentDir,
+    });
+  }
+
+  const claudeDir = getClaudeDir(cwd);
+  if (dirExists(claudeDir)) {
+    configs.push({
+      type: "claude-code",
+      label: "Claude Code",
+      directory: ".claude",
+      path: claudeDir,
     });
   }
 
@@ -247,7 +258,7 @@ function handleRequest(
 export const shareCommand = defineCommand({
   meta: {
     name: "share",
-    description: "Share AI IDE configs (.cursor, .agents, .github) over LAN or Internet via HTTP",
+    description: "Share AI IDE configs (.cursor, .agents, .claude, .github) over LAN or Internet via HTTP",
   },
   args: {
     port: {

@@ -1,21 +1,17 @@
-import { defineCommand } from "citty";
-import * as p from "@clack/prompts";
-import pc from "picocolors";
 import { join } from "node:path";
+import * as p from "@clack/prompts";
+import { defineCommand } from "citty";
+import pc from "picocolors";
 import type { InstructionTarget } from "../types/init";
-import {
-  listFiles,
-  listDirs,
-  removeFile,
-  fileExists,
-  dirExists,
-} from "../utils/fs";
 import { highlight, printSuccess } from "../utils/branding";
+import { dirExists, fileExists, listDirs, listFiles, removeFile } from "../utils/fs";
+import { updateClaudeMd } from "../utils/install";
 import {
-  promptTargetSelection,
-  isValidTarget,
-  getTargetDirectories,
+  ALL_TARGETS,
+  formatTargets,
   getTargetConfig,
+  getTargetDirectories,
+  resolveTargets,
 } from "../utils/target";
 
 type ItemType = "command" | "rule" | "skill";
@@ -26,10 +22,42 @@ interface SelectOption {
   hint?: string;
 }
 
+/** Path of an item inside a target, or null when that target does not have it. */
+function findItemPath(target: InstructionTarget, itemType: ItemType, name: string): string | null {
+  const { commandsDir, rulesDir, skillsDir } = getTargetDirectories(target);
+  const config = getTargetConfig(target);
+
+  if (itemType === "skill") {
+    const path = join(skillsDir, name);
+    return dirExists(path) ? path : null;
+  }
+
+  const path =
+    itemType === "command"
+      ? join(commandsDir, `${name}${config.commandsExtension}`)
+      : join(rulesDir, `${name}${config.rulesExtension}`);
+  return fileExists(path) ? path : null;
+}
+
+function listItems(target: InstructionTarget, itemType: ItemType): string[] {
+  const { commandsDir, rulesDir, skillsDir } = getTargetDirectories(target);
+  const config = getTargetConfig(target);
+
+  if (itemType === "skill") return listDirs(skillsDir);
+  if (itemType === "command") {
+    return listFiles(commandsDir, config.commandsExtension).map((f) =>
+      f.slice(0, -config.commandsExtension.length),
+    );
+  }
+  return listFiles(rulesDir, config.rulesExtension).map((f) =>
+    f.slice(0, -config.rulesExtension.length),
+  );
+}
+
 export const removeCommand = defineCommand({
   meta: {
     name: "remove",
-    description: "Remove a command, rule, or skill",
+    description: "Remove a command, rule, or skill from every configured AI IDE",
   },
   args: {
     type: {
@@ -50,39 +78,37 @@ export const removeCommand = defineCommand({
     },
     target: {
       type: "string",
-      description: "Target IDE: 'cursor', 'github-copilot', or 'google-antigravity'",
+      description: `Target IDE(s), comma-separated: ${ALL_TARGETS.join(", ")}, or 'dual'. Defaults to the targets saved by init`,
     },
   },
   async run({ args }) {
     p.intro(pc.bgCyan(pc.black(" fivem-devkit remove ")));
 
-    let target: InstructionTarget;
-    if (isValidTarget(args.target)) {
-      target = args.target;
-    } else {
-      const selection = await promptTargetSelection();
-      if (p.isCancel(selection)) {
-        p.cancel("Operation cancelled");
-        process.exit(0);
-      }
-      target = selection;
+    const resolved = await resolveTargets(args.target);
+    if (p.isCancel(resolved)) {
+      p.cancel("Operation cancelled");
+      process.exit(0);
     }
+    const targets = resolved as InstructionTarget[];
 
-    const targetConfig = getTargetConfig(target);
-    const directories = getTargetDirectories(target);
-    const { commandsDir, rulesDir, skillsDir } = directories;
-
-    const rulesExtension = targetConfig.rulesExtension;
-    const commands = listFiles(commandsDir, ".md").map((f) => f.replace(".md", ""));
-    const rules = listFiles(rulesDir, rulesExtension).map((f) => f.replace(rulesExtension, ""));
-    const skills = listDirs(skillsDir);
-
-    console.log(pc.dim(`  Target: ${highlight(targetConfig.label)}`));
+    console.log(pc.dim(`  Target: ${highlight(formatTargets(targets))}`));
     console.log();
 
-    if (commands.length === 0 && rules.length === 0 && skills.length === 0) {
-      console.log();
-      console.log(pc.yellow(`  No ${targetConfig.commandsLabel}, ${targetConfig.rulesLabel}, or skills to remove.`));
+    const itemsByType = (type: ItemType): string[] =>
+      [...new Set(targets.flatMap((target) => listItems(target, type)))].sort();
+
+    const available: Record<ItemType, string[]> = {
+      command: itemsByType("command"),
+      rule: itemsByType("rule"),
+      skill: itemsByType("skill"),
+    };
+
+    if (
+      available.command.length === 0 &&
+      available.rule.length === 0 &&
+      available.skill.length === 0
+    ) {
+      console.log(pc.yellow("  No commands, rules, or skills to remove."));
       console.log();
       p.outro(pc.dim("Nothing to do"));
       return;
@@ -94,31 +120,13 @@ export const removeCommand = defineCommand({
     if (args.type && ["command", "rule", "skill"].includes(args.type)) {
       itemType = args.type as ItemType;
     } else {
-      const typeOptions: SelectOption[] = [];
-
-      if (commands.length > 0) {
-        typeOptions.push({
-          value: "command",
-          label: target === "google-antigravity" ? "Workflow" : "Command",
-          hint: `${commands.length} available`,
-        });
-      }
-
-      if (rules.length > 0) {
-        typeOptions.push({
-          value: "rule",
-          label: "Rule",
-          hint: `${rules.length} available`,
-        });
-      }
-
-      if (skills.length > 0) {
-        typeOptions.push({
-          value: "skill",
-          label: "Skill",
-          hint: `${skills.length} available`,
-        });
-      }
+      const typeOptions: SelectOption[] = (["command", "rule", "skill"] as const)
+        .filter((type) => available[type].length > 0)
+        .map((type) => ({
+          value: type,
+          label: type.charAt(0).toUpperCase() + type.slice(1),
+          hint: `${available[type].length} available`,
+        }));
 
       const typeResult = await p.select({
         message: "What do you want to remove?",
@@ -133,30 +141,19 @@ export const removeCommand = defineCommand({
       itemType = typeResult as ItemType;
     }
 
-    const isCommand = itemType === "command";
-    const isRule = itemType === "rule";
-    const isSkill = itemType === "skill";
-    const items = isCommand ? commands : isRule ? rules : skills;
-    const dir = isCommand ? commandsDir : isRule ? rulesDir : skillsDir;
-    const extension = isCommand ? ".md" : isRule ? rulesExtension : "";
-    const itemLabel = isCommand ? targetConfig.commandsLabel : itemType;
+    const items = available[itemType];
 
     if (items.length === 0) {
-      p.cancel(`No ${itemLabel}s found`);
+      p.cancel(`No ${itemType}s found`);
       process.exit(0);
     }
 
     if (args.name && items.includes(args.name)) {
       itemName = args.name;
     } else {
-      const itemOptions: SelectOption[] = items.map((item) => ({
-        value: item,
-        label: item,
-      }));
-
       const nameResult = await p.select({
-        message: `Select ${itemLabel} to remove:`,
-        options: itemOptions,
+        message: `Select ${itemType} to remove:`,
+        options: items.map((item) => ({ value: item, label: item })),
       });
 
       if (p.isCancel(nameResult)) {
@@ -167,21 +164,18 @@ export const removeCommand = defineCommand({
       itemName = nameResult as string;
     }
 
-    const targetPath = isSkill
-      ? join(dir, itemName)
-      : join(dir, `${itemName}${extension}`);
+    const matches = targets
+      .map((target) => ({ target, path: findItemPath(target, itemType, itemName) }))
+      .filter((match): match is { target: InstructionTarget; path: string } => match.path !== null);
 
-    const exists = isSkill ? dirExists(targetPath) : fileExists(targetPath);
-
-    if (!exists) {
-      p.cancel(`${itemLabel} '${itemName}' not found`);
+    if (matches.length === 0) {
+      p.cancel(`${itemType} '${itemName}' not found`);
       process.exit(1);
     }
 
     if (!args.force) {
-      const displayName = isSkill ? itemName : itemName + extension;
       const shouldDelete = await p.confirm({
-        message: `Are you sure you want to delete ${highlight(displayName)}?${isSkill ? " (This will remove the entire skill directory)" : ""}`,
+        message: `Delete ${highlight(itemName)} from ${formatTargets(matches.map((m) => m.target))}?${itemType === "skill" ? " (This removes the entire skill directory)" : ""}`,
         initialValue: false,
       });
 
@@ -192,10 +186,14 @@ export const removeCommand = defineCommand({
     }
 
     try {
-      removeFile(targetPath);
-      const displayName = isSkill ? itemName : itemName + extension;
       console.log();
-      printSuccess(`Removed ${highlight(displayName)} from ${targetConfig.label}`);
+      for (const { target, path } of matches) {
+        removeFile(path);
+        if (target === "claude-code" && itemType === "command") {
+          updateClaudeMd(process.cwd());
+        }
+        printSuccess(`Removed ${highlight(itemName)} from ${getTargetConfig(target).label}`);
+      }
       console.log();
       p.outro(pc.green("✨ Done!"));
     } catch (error) {

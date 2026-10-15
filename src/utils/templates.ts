@@ -1,12 +1,23 @@
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { InstructionTarget } from "../types/init";
 import { REPO_RAW_URL, TEMPLATE_PATHS } from "./constants";
 import { fileExists, readFile, dirExists, listFiles, listDirs, copyDir, ensureDir, writeFile, deleteFile } from "./fs";
+
+/**
+ * Per-target profile: templates listed in `exclude` are not installed for that
+ * target (e.g. generic commands Claude Code already covers natively).
+ */
+export interface TargetProfile {
+  description?: string;
+  exclude?: Partial<Record<"commands" | "rules" | "skills", string[]>>;
+}
 
 export interface TemplateManifest {
   commands: string[];
   rules: string[];
   skills: string[];
+  profiles?: Partial<Record<InstructionTarget, TargetProfile>>;
 }
 
 export type TemplateType = "commands" | "rules" | "skills";
@@ -16,7 +27,18 @@ export interface TemplateItem {
   type: TemplateType;
 }
 
-function getLocalTemplatesDir(): string {
+let templatesSourceOverride: string | null = null;
+
+/**
+ * Read templates from another directory (e.g. a fresh download made by `pull`)
+ * instead of the ones bundled with the CLI. Pass null to restore the default.
+ */
+export function setTemplatesSource(dir: string | null): void {
+  templatesSourceOverride = dir;
+}
+
+export function getLocalTemplatesDir(): string {
+  if (templatesSourceOverride) return templatesSourceOverride;
   const currentDir = dirname(fileURLToPath(import.meta.url));
   return join(currentDir, "..", "templates");
 }
@@ -193,25 +215,27 @@ export function getSkillLabel(skillName: string): string {
     .join(" ");
 }
 
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/;
+
 export function stripFrontmatter(content: string): string {
-  const frontmatterRegex = /^---\n[\s\S]*?\n---\n/;
-  return content.replace(frontmatterRegex, "").trim();
+  return content.replace(FRONTMATTER_REGEX, "").trim();
 }
 
 export function extractFrontmatter(content: string): {
   alwaysApply?: boolean;
+  trigger?: string;
   name?: string;
   description?: string;
   [key: string]: unknown;
 } {
-  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+  const frontmatterMatch = content.match(FRONTMATTER_REGEX);
   if (!frontmatterMatch) return {};
 
   const frontmatter = frontmatterMatch[1];
   const result: Record<string, unknown> = {};
 
-  for (const line of frontmatter.split("\n")) {
-    const match = line.match(/^(\w+):\s*(.+)$/);
+  for (const line of frontmatter.split(/\r?\n/)) {
+    const match = line.match(/^([\w-]+):\s*(.+)$/);
     if (match) {
       const [, key, value] = match;
       result[key] =
@@ -221,6 +245,67 @@ export function extractFrontmatter(content: string): {
 
   return result;
 }
+
+/**
+ * A rule is "always on" when it declares either the AntiGravity form
+ * (`trigger: always_on`) or the Cursor form (`alwaysApply: true`).
+ */
+export function isAlwaysOnRule(content: string): boolean {
+  const frontmatter = extractFrontmatter(content);
+  return frontmatter.trigger === "always_on" || frontmatter.alwaysApply === true;
+}
+
+interface TargetPathTokens {
+  RULES_DIR: string;
+  SKILLS_DIR: string;
+  RULE_EXT: string;
+  SKILL_FILE: string;
+}
+
+const TARGET_PATH_TOKENS: Record<InstructionTarget, TargetPathTokens> = {
+  cursor: {
+    RULES_DIR: ".cursor/rules",
+    SKILLS_DIR: ".cursor/skills",
+    RULE_EXT: ".mdc",
+    SKILL_FILE: "SKILL.mdc",
+  },
+  "github-copilot": {
+    RULES_DIR: ".github/copilot-instructions/rules",
+    SKILLS_DIR: ".github/copilot-instructions/skills",
+    RULE_EXT: ".md",
+    SKILL_FILE: "SKILL.md",
+  },
+  "google-antigravity": {
+    RULES_DIR: ".agents/rules",
+    SKILLS_DIR: ".agents/skills",
+    RULE_EXT: ".md",
+    SKILL_FILE: "SKILL.md",
+  },
+  "claude-code": {
+    RULES_DIR: ".claude/rules",
+    SKILLS_DIR: ".claude/skills",
+    RULE_EXT: ".md",
+    SKILL_FILE: "SKILL.md",
+  },
+};
+
+/**
+ * Replace target-neutral placeholders (`{{RULES_DIR}}`, `{{SKILLS_DIR}}`,
+ * `{{RULE_EXT}}`, `{{SKILL_FILE}}`, `{{BRAIN_DIR}}`) so templates point at the
+ * right paths for each IDE and at the workspace's Second Brain vault.
+ */
+export function renderTemplateForTarget(
+  content: string,
+  target: InstructionTarget,
+  brainDir = "brain-<ProjectName>",
+): string {
+  const tokens = TARGET_PATH_TOKENS[target];
+  return content.replace(
+    /\{\{(RULES_DIR|SKILLS_DIR|RULE_EXT|SKILL_FILE|BRAIN_DIR)\}\}/g,
+    (_, key: string) => (key === "BRAIN_DIR" ? brainDir : tokens[key as keyof TargetPathTokens]),
+  );
+}
+
 /**
  * Get semantic description keywords for a rule based on filename.
  * Helps the IDE understand when to apply the rule.
@@ -236,8 +321,9 @@ function getSemanticDescriptionForRule(filename: string): string {
     "security-fivem": "FiveM security, zero-trust client, SQL injection prevention, anti-exploit guidelines",
     "code-reuse": "Search before build protocol, code reuse, anti-duplication hierarchy, avoid reinventing the wheel",
     "communication": "Direct and concise communication guidelines, non-sycophantic tone, objective feedback",
-    "second-brain": "Second Brain persistent knowledge base, decisions ADR, bug RCA post-mortems, runtime gotchas",
+    "second-brain": "Second Brain project memory: when to consult and record notes, INDEX.md lookup, grep by file, decisions, bugs, gotchas, concepts, stack and conventions",
     "verification": "Mandatory pre-completion verification, typecheck, build validation, definition of done",
+    "multi-agent": "Multi-agent coordination, Claude Code and AntiGravity working at the same time, AGENT_BOARD.md, file claims, handoff",
     "idioma": "Idioma e diretrizes de linguagem para comunicação, respostas em português",
   };
   
@@ -254,8 +340,14 @@ export function transformRuleForAntiGravity(content: string, filename: string = 
   const frontmatter = extractFrontmatter(content);
   const body = stripFrontmatter(content);
   
-  // Determine trigger type based on alwaysApply flag
-  const trigger = frontmatter.alwaysApply === true ? "always_on" : "model_decision";
+  // Templates already use AntiGravity triggers; fall back to the Cursor alwaysApply flag
+  const validTriggers = ["always_on", "model_decision", "manual", "glob"];
+  const trigger =
+    frontmatter.trigger && validTriggers.includes(frontmatter.trigger)
+      ? frontmatter.trigger
+      : isAlwaysOnRule(content)
+        ? "always_on"
+        : "model_decision";
   
   // Build description with semantic keywords
   const existingDesc = frontmatter.description || frontmatter.name || "";
@@ -270,6 +362,105 @@ export function transformRuleForAntiGravity(content: string, filename: string = 
   newFrontmatter += "---\n\n";
   
   return newFrontmatter + body;
+}
+
+/**
+ * Transform a template rule to Cursor's .mdc frontmatter (`alwaysApply`).
+ */
+export function transformRuleForCursor(content: string, filename: string = ""): string {
+  const frontmatter = extractFrontmatter(content);
+  const body = stripFrontmatter(content);
+  const description =
+    getSemanticDescriptionForRule(filename) || frontmatter.description || frontmatter.name || "";
+
+  let newFrontmatter = "---\n";
+  if (description) {
+    newFrontmatter += `description: ${description}\n`;
+  }
+  newFrontmatter += `alwaysApply: ${isAlwaysOnRule(content)}\n---\n\n`;
+
+  return newFrontmatter + body;
+}
+
+/**
+ * Glob scopes for rules that AntiGravity applies by model decision. Claude Code
+ * has no "model decides" mode, so these rules load only when Claude touches a
+ * matching file. Rules without an entry here load unconditionally.
+ */
+const CLAUDE_RULE_PATHS: Record<string, string[]> = {
+  "fivem-nui-styling": ["**/*.{tsx,jsx,vue,css,scss,sass,html}", "**/tailwind.config.*"],
+  "security-fivem": ["**/*.lua", "**/server/**/*.{js,ts}", "**/*.sql"],
+};
+
+/**
+ * Transform a template rule to a Claude Code rule (`.claude/rules/*.md`).
+ * Always-on rules lose their frontmatter (they load like CLAUDE.md);
+ * model-decision rules get a `paths:` scope when one is known.
+ */
+export function transformRuleForClaude(content: string, filename: string = ""): string {
+  const body = stripFrontmatter(content);
+  const paths = isAlwaysOnRule(content)
+    ? undefined
+    : CLAUDE_RULE_PATHS[filename.replace(/\.(md|mdc)$/, "").toLowerCase()];
+
+  if (!paths) {
+    return `${body}\n`;
+  }
+
+  const pathLines = paths.map((glob) => `  - "${glob}"`).join("\n");
+  return `---\npaths:\n${pathLines}\n---\n\n${body}\n`;
+}
+
+/**
+ * Transform a command template to a Claude Code slash command
+ * (`.claude/commands/*.md`), appending `$ARGUMENTS` so `/fix <text>` reaches the prompt.
+ */
+export function transformCommandForClaude(content: string, filename: string): string {
+  const frontmatter = extractFrontmatter(content);
+  const body = stripFrontmatter(content);
+  const description =
+    frontmatter.description ||
+    filename
+      .replace(/\.md$/, "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+  let newFrontmatter = `---\ndescription: ${description}\n`;
+  if (frontmatter["argument-hint"]) {
+    newFrontmatter += `argument-hint: ${frontmatter["argument-hint"]}\n`;
+  }
+  newFrontmatter += "---\n\n";
+
+  return `${newFrontmatter}${body}\n\n## Input\n\n$ARGUMENTS\n`;
+}
+
+/**
+ * Transform SKILL.md to Claude Code format. Claude requires `name` to be a
+ * lowercase slug, so the skill directory name is used.
+ */
+export function transformSkillForClaude(content: string, skillName: string): string {
+  const frontmatter = extractFrontmatter(content);
+  const body = stripFrontmatter(content);
+  const description = frontmatter.description || frontmatter.name || skillName;
+
+  return `---\nname: ${skillName}\ndescription: ${description}\n---\n\n${body}\n`;
+}
+
+export function copyLocalSkillForClaude(skillName: string, targetDir: string): boolean {
+  const sourcePath = getLocalSkillDir(skillName);
+  if (!sourcePath) return false;
+
+  const destPath = join(targetDir, skillName);
+  ensureDir(destPath);
+  copyDir(sourcePath, destPath);
+
+  const skillMdPath = join(destPath, "SKILL.md");
+  if (fileExists(skillMdPath)) {
+    writeFile(skillMdPath, transformSkillForClaude(readFile(skillMdPath), skillName));
+  }
+
+  return true;
 }
 
 /**
@@ -401,7 +592,7 @@ export function generateCopilotIndex(
   output +=
     "- **Rules**: Reference rules when they apply to the current coding task\n";
   output +=
-    "- **Skills**: Read skill files when working in that domain (e.g., frontend-development for React components)\n";
+    "- **Skills**: Read skill files when working in that domain (e.g., fivem-nui for NUI interfaces)\n";
   output +=
     "- **Always Apply Rules**: These are automatically considered, but you can reference them for specific guidance\n\n";
 
