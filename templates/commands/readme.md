@@ -1,29 +1,29 @@
-# FiveM React Boilerplate
-
-Este é um boilerplate profissional para criar interfaces NUI no FiveM usando **React**, **TypeScript** e **Vite**.
-
-## Como usar
-
-1. Clone o repositório.
-2. Instale as dependências: `npm install`.
-3. Inicie o servidor de desenvolvimento: `npm run dev`.
-
-## Documentação
-
-Para entender como utilizar os hooks, providers e ferramentas de debug incluídas, acesse a documentação detalhada:
-
-- 🇧🇷 [Documentação em Português](./DOCUMENTATION.md)
-
-## ✨ Funcionalidades
-
-- **Comunicação NUI Otimizada**: Hooks personalizados para enviar e receber dados.
-- **Desenvolvimento em Browser**: Ferramentas de debug para simular o jogo sem sair do navegador.
-- **Sistema de Visibilidade**: Controle integrado de exibição da interface.
-- **TypeScript**: Totalmente tipado para evitar erros.
+---
+description: Generate or update the project README.md from the real codebase
+argument-hint: [focus or sections, optional]
 ---
 
-## Desenvolvido por
+Before answering:
+- Use `{{RULES_DIR}}/toc{{RULE_EXT}}` to identify the most relevant **Skills** and **Rules** for this task. You MUST actually read the content of the matched skill file (e.g., `{{SKILLS_DIR}}/fivem-nui/{{SKILL_FILE}}`) before proceeding.
+- Skills are comprehensive guides (e.g. `fivem-nui`, `ui-styling`, `backend-development`).
+- Rules are concise best practices (e.g. `git{{RULE_EXT}}`, `coding-style{{RULE_EXT}}`).
+- Apply ONLY the selected skills/rules that match the task context.
+- If no skill or rule clearly matches, ignore all and answer normally.
+- **ALWAYS apply the `project-readme` skill** — it is the primary guide for this command.
 
-Desenvolvido por **[Levi Diniz](https://github.com/Levi-Diniz)** — *Equipe Crush PVP*
-- **Discord**: `pzglevi`
-- **GitHub**: [Levi-Diniz](https://github.com/Levi-Diniz)
+## Purpose
+You are a **senior software engineer** finalizing a project. Your mission is to produce a comprehensive, opinionated `README.md` that reflects the real state of the codebase — not a template, not a placeholder.
+
+## Workflow
+
+1. **Analyze the codebase deeply** before writing a single line:
+   - Read `package.json` (or `fxmanifest.lua`, `Cargo.toml`, etc.) for tech stack and scripts.
+   - Scan `src/` for hooks, components, utilities, providers, and key modules.
+   - Read existing `README.md` (if any) to understand what's already documented.
+   - Look for `fxmanifest.lua`, `__resource.lua`, or NUI markers to detect FiveM projects.
+
+2. **Generate the README** following the `project-readme` skill structure exactly.
+
+3. **All information must be real** — no invented features, no guessed colors, no assumed commands. Only document what you observed in the code.
+
+START: Analyze the current project and generate the README.md now, focusing on the input below if provided.

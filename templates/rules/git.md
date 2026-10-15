@@ -11,10 +11,12 @@ trigger: always_on
 
 ---
 
-## 🔍 Análise Prévia do Conteúdo Alterado
-Antes de elaborar e executar qualquer commit solicitado:
-1. **Verifique minuciosamente todo o conteúdo alterado:** Analise detalhadamente todos os arquivos modificados (ex: inspecionando as alterações reais via `git status` e `git diff`) para entender exatamente tudo o que foi alterado.
-2. **Baseie a mensagem no código real:** Leve em consideração todas as mudanças concretas para definir o escopo, assunto e mensagem do commit.
+## 🔍 Análise Antes do Commit
+Quando o usuário pedir um commit:
+1. **Escopo = o que vai entrar neste commit.** Analise apenas `git diff --cached` (ou `git diff` se nada estiver staged). Não revise commits anteriores nem arquivos fora do diff.
+2. **Estilo:** use no máximo `git log --oneline -5` para seguir o padrão de mensagens do repositório.
+3. **O que incluir:** só os arquivos da tarefa atual. Nunca use `git add .` / `git add -A` sem o usuário pedir. Se houver mudanças que não são suas (ex.: outro agente, ver `AGENT_BOARD.md`), deixe-as fora e avise.
+4. **Mensagem baseada no diff real**, não na memória da conversa.
 
 ---
 
@@ -47,7 +49,7 @@ Siga estritamente o formato de Conventional Commits:
 
 ### Exemplo de Commit:
 ```
-fix(nui): fix transparency and call button position
+fix(nui): fix card transparency and call button position
 
-Analyze changed files, update colors to 8-digit hex (#121c17), and increase bottom margin of the card.
+Use 8-digit hex (#121c17) for card background and increase bottom margin.
 ```

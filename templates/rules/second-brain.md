@@ -1,84 +1,63 @@
 ---
 trigger: always_on
-description: Second Brain - Project persistent memory and knowledge base (Obsidian-compatible)
+description: Second Brain - memória persistente do projeto (Obsidian) - quando consultar, quando registrar e como achar a nota certa
 ---
 
-# Second Brain (Obsidian Knowledge Base)
+# Second Brain
 
-## Purpose
-The **Second Brain** serves as the persistent, long-term memory of this repository and is designed to be opened directly as an **Obsidian Vault**. It maintains deep context about server mechanics, solved bugs, architectural decisions, and unique environment quirks.
+Memória de longo prazo do projeto, compartilhada entre o usuário (Obsidian) e todos os agentes de IA. Fica em **`{{BRAIN_DIR}}/`** na raiz do workspace. Nunca crie outro vault nem use outro nome.
 
-**Location:** `brain-<ProjectName>/` (at the workspace root, e.g. `brain-FiveM-DevKit/`).
+## Como achar a nota certa (sem ler tudo)
 
----
+1. **`{{BRAIN_DIR}}/INDEX.md`**: uma linha por nota, com resumo, arquivos de código cobertos e tags. Leia o índice, não as pastas.
+2. **Busca direta**: o frontmatter `files:` de cada nota lista os arquivos que ela cobre. Antes de editar `server/inventory.lua`, rode `grep -rl "inventory.lua" {{BRAIN_DIR}}/`. Para um erro, busque um trecho da mensagem em `{{BRAIN_DIR}}/bugs/`.
+3. Abra só as notas que casarem.
 
-## Vault Structure & High-Relevance Standards for AI
+## Quando consultar
 
-Inside `brain-<ProjectName>/`, notes are not just changelogs: they are the **anti-regression memory of the AI**. When writing to or reading from these folders, the agent MUST adhere to these standards:
+| Situação | Onde olhar |
+|---|---|
+| Vai editar um arquivo não trivial | `grep` do nome do arquivo no vault |
+| Apareceu um erro ou comportamento estranho | `bugs/` e `gotchas/` (busca pela mensagem ou pelo sistema) |
+| Vai escolher lib, padrão, estrutura ou arquitetura | `decisions/` |
+| Começou a trabalhar no projeto ou não sabe o framework | `project/stack.md` e `project/conventions.md` |
+| Vai mexer num sistema do servidor (eventos, economia, inventário...) | `concepts/` |
 
-### 1. Decisions (`brain-<ProjectName>/decisions/decisao - <topic>.md`)
-*Standard: MADR (Markdown Architectural Decision Records) + AI Non-Regression Directives*
-Every decision record MUST include:
-- **Context & Decision Drivers:** Real operational pains, bottlenecks, or requirements that forced the change.
-- **Alternatives Considered & Rejected:** Explicit list of other approaches evaluated and the exact technical reason they were discarded (CRUCIAL: without this, future AIs will re-suggest rejected patterns).
-- **Decision & Rationale:** The chosen solution and the technical reasoning behind it.
-- **Consequences & Trade-offs:** Positive gains AND consciously accepted negative trade-offs.
-- **Directives for AI (Non-Regression Rules):** Clear `> [!IMPORTANT]` block defining what the AI must NEVER do or suggest regarding this topic.
-- **Revisit Criteria:** Clear triggers describing under what exact conditions this decision may be reopened.
+**Não consulte** para tarefas triviais (texto, renomear, pergunta conceitual). Respeite sempre os blocos **Diretriz para IA**, **Invariantes** e **Sinais de detecção** das notas. Notas com `status: superseded` estão obsoletas: siga o link para a substituta.
 
-### 2. Bugs (`brain-<ProjectName>/bugs/bug - <concise-name>.md`)
-*Standard: Google SRE Post-Mortem & Root Cause Analysis (RCA)*
-Every resolved bug record MUST include:
-- **Observable Symptom & Error:** Exact error messages, stack traces, and broken behavior.
-- **Root Cause (5 Whys):** The underlying structural flaw (race condition, null deserialization, lifecycle mismatch), not just the superficial symptom.
-- **The Fix Applied:** Specific code changes and affected files (`[file](file:///path)`).
-- **Anti-Regression Mechanism:** How future occurrences are prevented (guards, defensive defaults, types, tests).
-- **Agent Guardrail (`> [!CAUTION]`):** Strict instruction on what to validate whenever modifying this component in the future.
+## Quando registrar
 
-### 3. Gotchas (`brain-<ProjectName>/gotchas/gotcha - <title>.md`)
-*Standard: Google SWE Pitfalls & Runtime Reality*
-Every gotcha record MUST include:
-- **The Intuitive Trap:** What a developer or modern AI would instinctively write thinking it's correct.
-- **The Engine Reality:** Why the FiveM / CEF / Node / OS runtime fails or behaves unexpectedly.
-- **Safe Pattern (Bad vs. Good):** Clear side-by-side code blocks showing the anti-pattern and the resilient fix.
-- **Detection Clues:** Keywords or scenarios that signal the AI is about to trigger this pitfall.
+| Aconteceu | Registro | Como |
+|---|---|---|
+| Bug com causa não óbvia, ou que levou mais de uma tentativa | `bugs/` | **Automático** |
+| O runtime se comportou diferente do esperado (CEF, natives, OneSync) | `gotchas/` | **Automático** |
+| Sistema novo ou contrato de eventos/NUI criado | `concepts/` | **Automático** |
+| Descobriu framework, banco ou dependência que não estava em `stack.md` | `project/stack.md` | **Automático** |
+| O usuário escolheu ou rejeitou uma abordagem com um motivo | `decisions/` | **Perguntar antes** |
+| O usuário corrigiu uma preferência ("sempre use X", "não faça Y") | `project/conventions.md` | **Perguntar antes** |
 
-### 4. Concepts (`brain-<ProjectName>/concepts/conceito - <system>.md`)
-*Standard: Domain-Driven Design (DDD) Ubiquitous Language & Invariants*
-Every concept record MUST include:
-- **Domain Boundaries (What it IS and what it is NOT):** Disambiguation from similar concepts to prevent AI hallucinations.
-- **Lifecycle & Valid State Transitions:** Allowed vs prohibited states and transitions.
-- **Data Contracts & Events:** Payloads, net events (Client <-> Server), and NUI messages.
-- **System Invariants (`> [!IMPORTANT]`):** Non-negotiable business rules that code must never violate.
+- **Automático**: grave ao concluir a tarefa e avise em uma linha (`Registrei em {{BRAIN_DIR}}/bugs/x.md`).
+- **Perguntar antes**: decisões e convenções registram escolhas do usuário. Pergunte "Quer que eu registre isso no brain?" e só grave com um sim.
+- **Não registre**: correções triviais, o que já está claro no código ou no git log, e estado temporário (isso vai no `AGENT_BOARD.md`).
+- Antes de criar, procure no `INDEX.md` uma nota sobre o mesmo tema. Se existir, **atualize-a** em vez de duplicar.
+- Formato e processo: siga o command `/brain` e os modelos em `{{BRAIN_DIR}}/_templates/`.
 
-### 5. Project (`brain-<ProjectName>/project/`)
-*Standard: C4 Architectural Boundaries & Tech Matrix*
-- Component boundaries, allowed import paths, disallowed dependencies, and supported engine runtime versions.
+## Manter correto
 
----
+- Se você mudar código listado em `files:` de uma nota e ela ficar errada, atualize a nota (e o campo `updated`) ou marque `status: superseded` com um link para a nova.
+- Depois de criar ou alterar notas, atualize o `INDEX.md`: rode `fdk brain index` ou adicione/edite a linha à mão no mesmo formato.
 
-## Behavioral Guidelines for Agents
+## Onde cada coisa vai
 
-### 1. Consult Before Acting
-- Before starting complex tasks, refactors, or bug hunting, **read relevant notes in `brain-<ProjectName>/`** to leverage existing context and respect past technical decisions.
-- Strictly adhere to the `Directives for AI` and `Agent Guardrails` found inside decision and bug notes.
+| Informação | Lugar |
+|---|---|
+| Regra que vale sempre, para todos os agentes | rules / `GEMINI.md` |
+| Conhecimento do projeto: porquês, armadilhas, histórico, stack | Second Brain |
+| Trabalho em andamento entre agentes | `AGENT_BOARD.md` |
+| Memória privada de um agente (ex.: a do Claude) | Só o fluxo pessoal daquele agente. Nunca conhecimento do projeto, porque os outros agentes e o usuário não veem |
 
-### 2. Obsidian Graph View & Cross-Linking (MANDATORY)
-Obsidian's Graph View connects notes visually **ONLY through explicit Wikilinks (`[[target-note]]`)**. Pure text mentions or markdown file paths (`file:///...`) do NOT create edges on the graph.
+## Links e nomes (Obsidian)
 
-Whenever reading, creating, or updating notes, agents MUST adhere to these linking rules:
-- **Active Vault Cross-Referencing:** Before finalizing any note (e.g. a Bug or Decision), search `brain-<ProjectName>/` for existing notes related to the affected system, mechanic, or function (e.g. `conceito - <sistema>.md`).
-- **Wikilink Syntax for Graph Edges:**
-  - Link to an entire note: `[[conceito - sistema-combate]]` or `[[decisao - remocao-apps-www]]`.
-  - Link with custom display text: `[[conceito - sistema-combate|Sistema de Combate]]`.
-  - Link to a specific section/function within a note: `[[conceito - sistema-combate#Função ProcessarDano]]`.
-- **Differentiate Code vs Graph Links:**
-  - Use `[arquivo.ts](file:///c:/path/to/code.ts)` when providing clickable file references for the code editor.
-  - Use `[[nome-da-nota]]` when referencing concepts, bugs, decisions, or gotchas in the Second Brain.
-- **Bi-Directional Context:**
-  - If a bug affected a function documented in `[[conceito - sistema]]`, the bug note MUST contain a Wikilink to `[[conceito - sistema]]`.
-  - In Obsidian's Graph View, this guarantees that the system note becomes a central cluster/hub, surrounded by all its associated bugs, decisions, and gotchas.
-
-### 3. Recording Knowledge via `/brain` or Work Completion
-- When recording notes (via `/brain` or after resolving significant tasks), ALWAYS fulfill the required sections above. Never create shallow 2-line notes.
-- Ensure every note clearly articulates the **"Why"**, the **"What NOT to do"**, and contains **Wikilinks to related notes** in the vault.
+- `[[nome-da-nota]]` para notas do vault (sem pasta, sem `.md`). `[texto](caminho/arquivo.lua)` para código.
+- Toda nota de bug, decisão ou gotcha linka o conceito ou sistema afetado, quando existir. É isso que cria o grafo.
+- Arquivos em kebab-case, sem espaços e sem prefixo de tipo: `bugs/callback-nui-sem-retorno.md`. O tipo já está na pasta e no frontmatter.

@@ -1,7 +1,12 @@
+---
+description: Refactor code for clarity and maintainability without changing behavior
+argument-hint: [file or area]
+---
+
 Before answering:
-- Use `toc.md` to identify the most relevant **Skills** and **Rules** for this task. You MUST actually read the content of the matched skill file (e.g., `skills/fivem-nui/SKILL.md`) before proceeding.
-- Skills are comprehensive guides (e.g. `frontend-development`, `ui-styling`, `backend-development`).
-- Rules are concise best practices (e.g. `git.mdc`, `coding-style.mdc`).
+- Use `{{RULES_DIR}}/toc{{RULE_EXT}}` to identify the most relevant **Skills** and **Rules** for this task. You MUST actually read the content of the matched skill file (e.g., `{{SKILLS_DIR}}/fivem-nui/{{SKILL_FILE}}`) before proceeding.
+- Skills are comprehensive guides (e.g. `fivem-nui`, `ui-styling`, `backend-development`).
+- Rules are concise best practices (e.g. `git{{RULE_EXT}}`, `coding-style{{RULE_EXT}}`).
 - Apply ONLY the selected skills/rules that match the task context.
 - If no skill or rule clearly matches, ignore all and answer normally.
 

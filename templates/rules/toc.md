@@ -9,10 +9,8 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 
 - [FiveM NUI](../skills/fivem-nui/SKILL.md) - FiveM NUI development: CEF performance, VH/VW responsive units, strict Figma fidelity, NUI communication patterns, and asset management
 - [Project README](../skills/project-readme/SKILL.md) - Generate a comprehensive, senior-level README.md by deeply analyzing the real codebase — stack, features, design tokens, communication patterns, and author info
-- [Aesthetic](../skills/aesthetic/SKILL.md) - Visual design principles, storytelling, and micro-interactions for distinctive interfaces
 - [Backend Development](../skills/backend-development/SKILL.md) - API design, architecture, authentication, security, and DevOps patterns
 - [Frontend Design](../skills/frontend-design/SKILL.md) - Create distinctive, production-grade interfaces with bold aesthetics (avoid generic AI slop)
-- [Frontend Development](../skills/frontend-development/SKILL.md) - React/TypeScript patterns: Suspense, lazy loading, TanStack Query/Router, MUI v7, file organization
 - [UI Styling](../skills/ui-styling/SKILL.md) - shadcn/ui components, Tailwind CSS utilities, theming, accessibility, and canvas-based visual design
 - [Sequential Thinking](../skills/sequential-thinking/SKILL.md) - Structured problem-solving with revision, branching, and hypothesis verification
 - [Problem Solving](../skills/problem-solving/SKILL.md) - Techniques for complexity spirals, innovation blocks, meta-patterns, and scale testing
@@ -28,14 +26,14 @@ You have multiple specialized rules organized into **Skills** (comprehensive gui
 - [Git](./git.md) - Git commit and branching conventions
 - [Coding Style](./coding-style.md) - Coding style and best practices
 - [Second Brain](./second-brain.md) - Project memory: architecture, technical decisions, bug history, and unique domain quirks
-- [Missions History](./missions-history.md) - History of monthly missions to avoid reward repetition
+- [Multi-Agent](./multi-agent.md) - Coordination protocol when Claude Code and Google AntiGravity edit the same workspace at the same time (AGENT_BOARD.md)
 
 ## Routing Guidelines
 
 1. **FiveM Detection (MANDATORY FIRST STEP)**: Before selecting any skill, check if the project is a FiveM NUI project. Detection markers (any ONE is sufficient):
    - **Resource files**: `fxmanifest.lua`, `__resource.lua`, or a `web/` directory typical of NUI resources.
    - **Boilerplate signatures**: `hooks/observe.ts`, `hooks/post.ts`, `hooks/listen.ts`, or `providers/Visibility.tsx` in the `src/` directory.
-   - If **any** marker is found, **ALWAYS include `FiveM NUI` as the primary skill and `FiveM NUI Styling` as an active rule for all UI/styling tasks**, and **`Security FiveM` as an active rule for network/database events** — it takes priority over `Frontend Design`, `UI Styling`, and `Frontend Development` for any UI/frontend work.
+   - If **any** marker is found, **ALWAYS include `FiveM NUI` as the primary skill and `FiveM NUI Styling` as an active rule for all UI/styling tasks**, and **`Security FiveM` as an active rule for network/database events** — it takes priority over `Frontend Design` and `UI Styling` for any UI/frontend work.
 2. For each user request, first infer which domains are relevant.
 3. Select 0–3 rules/skills that best match the request, prefer the SINGLE most specific one when possible.
 4. If both security and performance apply, prioritize `Security FiveM` first, then performance.

@@ -4,10 +4,11 @@
     "docs.md",
     "explain.md",
     "fix.md",
+    "handoff.md",
     "implement.md",
     "readme.md",
     "refactor.md",
-    "review.md",
+    "senior-review.md",
     "test.md"
   ],
   "rules": [
@@ -17,21 +18,45 @@
     "fivem-nui-styling.md",
     "git.md",
     "idioma.md",
+    "multi-agent.md",
     "second-brain.md",
     "security-fivem.md",
     "toc.md",
     "verification.md"
   ],
   "skills": [
-    "aesthetic",
     "backend-development",
     "frontend-design",
-    "frontend-development",
     "problem-solving",
     "project-readme",
     "research",
     "sequential-thinking",
     "ui-styling",
     "fivem-nui"
-  ]
+  ],
+  "profiles": {
+    "claude-code": {
+      "description": "Lean profile: Claude Code already handles generic tasks (fix, explain, refactor, tests, review) natively, and loads rules and skills on its own, so only FiveM knowledge, personal conventions and shared-workflow pieces are installed.",
+      "exclude": {
+        "commands": [
+          "docs.md",
+          "explain.md",
+          "fix.md",
+          "implement.md",
+          "readme.md",
+          "refactor.md",
+          "senior-review.md",
+          "test.md"
+        ],
+        "rules": [
+          "toc.md"
+        ],
+        "skills": [
+          "problem-solving",
+          "research",
+          "sequential-thinking"
+        ]
+      }
+    }
+  }
 }
