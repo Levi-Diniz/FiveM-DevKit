@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.0-beta.7](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.6...v1.7.0-beta.7) (2026-10-15)
+
+
+### 🚀 Features
+
+* **cli:** add claude-code target and fdk brain ([98d676e](https://github.com/Levi-Diniz/FiveM-DevKit/commit/98d676e18edb40441a3c62d1627f10ba1d3c8586))
+* **templates:** add multi-agent flow and brain v2 ([33d1ca1](https://github.com/Levi-Diniz/FiveM-DevKit/commit/33d1ca1afb137498464e3a8ba4942efe974270df))
+
+
+### 📚 Documentation
+
+* **brain:** migrate vault to indexed format ([d572469](https://github.com/Levi-Diniz/FiveM-DevKit/commit/d57246944faf1c47754da5895f7900485a964f33))
+* document dual mode, profiles and brain ([1474f57](https://github.com/Levi-Diniz/FiveM-DevKit/commit/1474f575027580fd5427960ab1a641c0e5a28db3))
+
 ## [1.7.0-beta.6](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.5...v1.7.0-beta.6) (2026-09-14)
 
 
