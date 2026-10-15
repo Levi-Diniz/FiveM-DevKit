@@ -1,4 +1,18 @@
+---
+type: gotcha
+status: active
+updated: 2026-09-14
+files: [templates/rules/fivem-nui-styling.md, templates/skills/fivem-nui/SKILL.md]
+tags: [nui, cef, css, tailwind]
+summary: No CEF do FiveM, backdrop-filter, opacidade com barra do Tailwind e shadow-[...] quebram; use rgba e style inline
+---
+
 # Gotcha: Limitações Críticas de CSS no FiveM NUI (CEF)
+
+> **TL;DR:** o CEF do FiveM não borra o jogo e falha com CSS moderno. Nada de `backdrop-blur`, nada de `bg-black/65` e nada de `shadow-[...]`: use cores `rgba(...)` e sombras no `style={{ }}`.
+
+> [!WARNING] Sinais de detecção
+> `backdrop-blur`, `backdrop-filter`, classes Tailwind com `/<número>` (`bg-*/65`, `border-*/5`), `shadow-[` em qualquer componente de NUI.
 
 ## Contexto
 O FiveM renderiza interfaces NUI utilizando o **Chromium Embedded Framework (CEF)** em modo **Off-Screen Rendering (OSR)** sobreposto à renderização gráfica do GTA V via DirectX. Esse ambiente possui limitações severas de renderização e compatibilidade de CSS moderno.

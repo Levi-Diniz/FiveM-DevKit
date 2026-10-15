@@ -1,8 +1,19 @@
+---
+type: decision
+status: active
+updated: 2026-09-11
+files: [README.md]
+tags: [repositorio, ci, documentacao]
+summary: apps/www (Next.js) removido; documentação só em Markdown, nunca reintroduzir app web neste repo
+---
+
 # Decisão: Remoção da aplicação web apps/www
 
+> **TL;DR:** o site Next.js em `apps/www` inflava dependências e quebrava o CI sem agregar valor à CLI. Foi removido; a documentação vive em Markdown e um site futuro iria para um repositório separado.
+
 - **Data:** 2026-09-11
-- **Status:** Aprovada & Aplicada
-- **Impacto:** Médio (Estrutura do Repositório & CI/CD)
+- **Impacto:** Médio (estrutura do repositório e CI/CD)
+- **Relacionados:** [[overview]]
 
 ---
 

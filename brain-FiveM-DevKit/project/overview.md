@@ -1,13 +1,22 @@
+---
+type: project
+status: active
+updated: 2026-10-15
+files: [src/cli.ts, templates/manifest.json]
+tags: [overview]
+summary: CLI que instala regras, commands e skills de IA para FiveM em vários IDEs (Claude Code, AntiGravity, Cursor, Copilot)
+---
+
 # Visão Geral do Projeto
 
-## Objetivo
-Kit de ferramentas e CLI para desenvolvimento de recursos e interfaces FiveM (NUI) com templates assistidos por IA.
+> **TL;DR:** kit de ferramentas e CLI (`fdk`) que instala templates de IA para desenvolvimento FiveM em um ou mais IDEs ao mesmo tempo, a partir de uma única fonte em `templates/`.
 
-## Componentes Principais
-- **CLI (`src/`):** Comandos em TypeScript executáveis no Node.js.
-- **Templates (`templates/`):** Regras de desenvolvimento (`rules/`), fluxos de comandos (`commands/`) e habilidades especializadas (`skills/`).
-- **Second Brain (`brain-FiveM-DevKit/`):** Base de conhecimento modular integrada ao Obsidian.
+## Componentes
 
-## Links Relacionados
-- [[README]]
-- [[../decisions/decisao - remocao-apps-www|Remoção do apps/www]]
+- **CLI (`src/`)**: comandos em TypeScript (citty + clack), empacotados com tsup. `src/utils/install.ts` instala por alvo; `src/utils/templates.ts` transforma os templates para cada IDE.
+- **Templates (`templates/`)**: `rules/`, `commands/`, `skills/` e `brain/` (estrutura deste vault). `manifest.json` lista tudo e define perfis por alvo.
+- **Second Brain (`brain-FiveM-DevKit/`)**: este vault.
+
+## Relacionados
+
+- [[stack]] · [[conventions]] · [[remocao-apps-www]]
