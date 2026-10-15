@@ -54,15 +54,34 @@ fdk init
 Initialize rules, and skills in your project. This is how you "install" the DevKit guidelines into your server resources.
 
 ```bash
-fdk init                       # Interactive selection
-fdk init -t cursor             # Quick init for Cursor IDE (.cursor/)
-fdk init --skills              # Only install specific skills (like FiveM NUI)
+fdk init                                   # Interactive selection (pick one or more IDEs)
+fdk init -t cursor                         # Quick init for Cursor IDE (.cursor/)
+fdk init -t dual -a                        # Claude Code + AntiGravity side by side, all templates
+fdk init -t claude-code,google-antigravity # Same as dual, explicit list
+fdk init --skills                          # Only install specific skills (like FiveM NUI)
 ```
 
-**Target options:**
-- `cursor` (default) - Creates `.cursor/` directory structure for Cursor IDE
+**Target options** (comma-separated for several at once):
+- `cursor` - Creates `.cursor/` directory structure for Cursor IDE
 - `github-copilot` - Creates `.github/copilot-instructions.md` and related structure for GitHub Copilot
 - `google-antigravity` - Creates `.agents/` directory with rules, workflows, and skills for Google AntiGravity
+- `claude-code` - Creates `.claude/` (commands, rules, skills) and a managed block in `CLAUDE.md`
+- `dual` - Shortcut for `claude-code,google-antigravity`
+
+The chosen targets are saved in `.fivemdevkit`, so `pull`, `add`, `remove` and `list` work on all of them without `-t`.
+
+**Per-target profiles:** `templates/manifest.json` can exclude templates per IDE under `profiles`. Claude Code uses a lean profile: generic commands (`/fix`, `/explain`, `/refactor`, `/test`, `/docs`, `/implement`, `/readme`, `/senior-review`), the `toc` rule and generic thinking skills are left out, since Claude handles those natively and loads rules/skills on its own. It keeps the FiveM rules and skills, personal conventions, the Second Brain, `/brain` and `/handoff`. Pass `--full` to `init` or `pull` to install everything anyway.
+
+#### Dual mode (Claude Code + AntiGravity at the same time)
+
+With both targets, every command, rule and skill exists in both IDEs, generated from the same templates. The `multi-agent` rule and the `AGENT_BOARD.md` file let two chats edit the same workspace without stepping on each other:
+
+- Before editing, each agent registers its task and files under **In Progress** on `AGENT_BOARD.md`, and does not touch files the other agent registered.
+- No `git checkout/restore/reset/stash/clean`, and no formatting the whole repo: the other agent's work is not committed yet.
+- `/handoff` closes the task and leaves a short note for the other chat. Durable knowledge still goes to the Second Brain (`/brain`), which both agents share.
+- Fill in **Roles** on the board to split areas (e.g. AntiGravity on NUI, Claude on Lua/server).
+
+Tip: add `AGENT_BOARD.md` to `.gitignore` if you don't want the board in version control.
 
 ### `add`
 
@@ -121,6 +140,18 @@ cursor-kit remove -t command -n my-command      # Quick remove
 cursor-kit remove -f                     # Skip confirmation
 cursor-kit remove --target cursor -t rule -n my-rule -f  # Full example
 ```
+
+### `brain`
+
+Manage the Second Brain: an Obsidian vault (`brain-<folder-name>/`) shared by you and every AI agent as long-term project memory.
+
+```bash
+fdk brain init    # Create the vault, or add missing standard files (never overwrites notes)
+fdk brain index   # Rebuild INDEX.md from the frontmatter of every note
+fdk brain check   # Report notes without frontmatter, stale `files:` paths and broken wikilinks
+```
+
+`fdk init` creates the vault automatically when the `second-brain` rule is installed, and the rule is rendered with the real vault path. Agents find notes through `INDEX.md` or by grepping the file names listed in each note's `files:` frontmatter. They record bugs, gotchas and concepts on their own, and ask before recording decisions or your preferences. Vault layout: `project/` (`overview`, `stack`, `conventions`), `decisions/`, `bugs/`, `gotchas/`, `concepts/` and `_templates/`.
 
 ### `share`
 
@@ -337,26 +368,19 @@ your-project/
     │   ├── fix.md
     │   ├── implement.md
     │   ├── refactor.md
-    │   ├── review.md
+    │   ├── senior-review.md
     │   └── test.md
     ├── rules/                 # AI behavior rules (.mdc)
     │   ├── coding-style.mdc
     │   ├── git.mdc
     │   └── toc.mdc
     └── skills/                # Comprehensive guides with references
-        ├── aesthetic/
-        │   ├── SKILL.mdc
-        │   ├── assets/
-        │   └── references/
         ├── backend-development/
         │   ├── SKILL.mdc
         │   └── references/
         ├── frontend-design/
         │   ├── SKILL.mdc
         │   └── references/
-        ├── frontend-development/
-        │   ├── SKILL.mdc
-        │   └── resources/
         ├── problem-solving/
         │   ├── SKILL.mdc
         │   └── references/
@@ -384,17 +408,13 @@ your-project/
         │   ├── fix.md
         │   ├── implement.md
         │   ├── refactor.md
-        │   ├── review.md
+        │   ├── senior-review.md
         │   └── test.md
         ├── rules/                 # AI behavior rules (.md)
         │   ├── coding-style.md
         │   ├── git.md
         │   └── toc.md
         └── skills/                # Comprehensive guides with references
-            ├── aesthetic/
-            │   ├── SKILL.md
-            │   ├── assets/
-            │   └── references/
             ├── backend-development/
             │   ├── SKILL.md
             │   └── references/
@@ -412,21 +432,29 @@ your-project/
     │   ├── fix.md
     │   ├── implement.md
     │   ├── refactor.md
-    │   ├── review.md
+    │   ├── senior-review.md
     │   └── test.md
     ├── rules/                     # AI behavior rules (.md)
     │   ├── coding-style.md
     │   ├── git.md
     │   └── toc.md
     └── skills/                    # Comprehensive guides with references
-        ├── aesthetic/
-        │   ├── SKILL.md
-        │   ├── assets/
-        │   └── references/
         ├── backend-development/
         │   ├── SKILL.md
         │   └── references/
         └── ... (other skills)
+```
+
+### Claude Code
+
+```
+your-project/
+├── CLAUDE.md                      # Managed block: commands, second brain, @GEMINI.md import
+└── .claude/
+    ├── commands/                  # Slash commands (/fix, /brain, /handoff...) with $ARGUMENTS
+    ├── rules/                     # Loaded automatically; NUI styling and FiveM security
+    │                              # are scoped with `paths:` to matching files
+    └── skills/                    # Same skills, `name` normalized to the directory slug
 ```
 
 ## 🎯 Included Templates
@@ -438,9 +466,12 @@ your-project/
 | `docs`      | Create or update documentation                 |
 | `explain`   | Clear technical explanations                   |
 | `fix`       | Diagnose and fix bugs with root cause analysis |
+| `brain`     | Record bugs, decisions and gotchas in the Second Brain |
+| `handoff`   | Leave a handoff on `AGENT_BOARD.md` for the other agent (dual mode) |
+| `readme`    | Generate the project README from the real codebase |
 | `implement` | Convert feature ideas into actionable plans    |
 | `refactor`  | Improve code quality without changing behavior |
-| `review`    | Comprehensive code review checklist            |
+| `senior-review` | Comprehensive code review checklist      |
 | `test`      | Generate comprehensive test suites             |
 
 ### Rules
@@ -449,16 +480,15 @@ your-project/
 | -------------- | ------------------------------------------ |
 | `coding-style` | Core coding conventions and best practices |
 | `git`          | Commit and branching conventions           |
+| `multi-agent`  | Coordination protocol for Claude Code + AntiGravity in the same workspace |
 | `toc`          | Table of contents for rule selection      |
 
 ### Skills
 
 | Skill                  | Description                                                                        |
 | ---------------------- | ---------------------------------------------------------------------------------- |
-| `aesthetic`            | Visual design principles, storytelling, and micro-interactions for distinctive interfaces |
 | `backend-development`  | API design, architecture, authentication, security, and DevOps patterns           |
 | `frontend-design`      | Create distinctive, production-grade interfaces with bold aesthetics (avoid generic AI slop) |
-| `frontend-development` | React/TypeScript patterns: Suspense, lazy loading, TanStack Query/Router, MUI v7, file organization |
 | `problem-solving`      | Techniques for complexity spirals, innovation blocks, meta-patterns, and scale testing |
 | `research`             | Systematic research methodology for technical solutions with report generation     |
 | `sequential-thinking`  | Structured problem-solving with revision, branching, and hypothesis verification   |
