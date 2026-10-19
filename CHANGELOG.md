@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0-beta.9](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.8...v1.7.0-beta.9) (2026-10-19)
+
+
+### 🚀 Features
+
+* **skills:** add nui-reverse-engineering skill ([1d1b3a1](https://github.com/Levi-Diniz/FiveM-DevKit/commit/1d1b3a12fda15a75a1d2ddc39d9c2017b54448d1))
+
 ## [1.7.0-beta.8](https://github.com/Levi-Diniz/FiveM-DevKit/compare/v1.7.0-beta.7...v1.7.0-beta.8) (2026-10-15)
 
 
