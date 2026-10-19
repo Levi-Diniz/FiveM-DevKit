@@ -493,6 +493,7 @@ your-project/
 | `research`             | Systematic research methodology for technical solutions with report generation     |
 | `sequential-thinking`  | Structured problem-solving with revision, branching, and hypothesis verification   |
 | `ui-styling`           | shadcn/ui components, Tailwind CSS utilities, theming, accessibility, and canvas-based visual design |
+| `nui-reverse-engineering` | Rebuild a FiveM NUI from its built/minified bundle (Vue or React) into an editable React project, with extraction scripts for code, icons and data |
 
 ## 🛠️ Development
 
